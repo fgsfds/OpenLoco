@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Graphics/FPSCounter.h"
 #include "Logging.h"
+#include "RenderTarget.h"
 #include "Ui.h"
 #include "Ui/WindowManager.h"
 #include <OpenLoco/Interop/Interop.hpp>
@@ -315,22 +316,20 @@ namespace OpenLoco::Gfx
             SDL_UnlockSurface(_screenSurface);
         }
 
-        // Convert colours via palette mapping onto the RGBA surface.
-        if (SDL_BlitSurface(_screenSurface, nullptr, _screenRGBASurface, nullptr))
-        {
-            Logging::error("SDL_BlitSurface {}", SDL_GetError());
-            return;
-        }
-
-        // Stream the RGBA pixels into screen texture.
-        void* pixels;
-        int pitch;
-        SDL_LockTexture(_screenTexture, NULL, &pixels, &pitch);
-        SDL_ConvertPixels(_screenRGBASurface->w, _screenRGBASurface->h, _screenRGBASurface->format->format, _screenRGBASurface->pixels, _screenRGBASurface->pitch, _screenTextureFormat->format, pixels, pitch);
-        SDL_UnlockTexture(_screenTexture);
-
+        // If scale factor is greater than 1 we need to copy the surface to a texture and then render that texture to the screen which
+        // is a bit slower. If scale factor is 1 it can directly blit the surface to the window.
         if (Config::get().scaleFactor > 1.0f)
         {
+            // Convert colours via palette mapping onto the RGBA surface.
+            if (SDL_BlitSurface(_screenSurface, nullptr, _screenRGBASurface, nullptr))
+            {
+                Logging::error("SDL_BlitSurface {}", SDL_GetError());
+                return;
+            }
+
+            // Stream the RGBA pixels into screen texture.
+            SDL_UpdateTexture(_screenTexture, nullptr, _screenRGBASurface->pixels, _screenRGBASurface->pitch);
+
             // Copy screen texture to the scaled texture.
             SDL_SetRenderTarget(_renderer, _scaledScreenTexture);
             SDL_RenderCopy(_renderer, _screenTexture, nullptr, nullptr);
@@ -338,14 +337,22 @@ namespace OpenLoco::Gfx
             // Copy scaled texture to primary render target.
             SDL_SetRenderTarget(_renderer, nullptr);
             SDL_RenderCopy(_renderer, _scaledScreenTexture, nullptr, nullptr);
+
+            // Display buffers.
+            SDL_RenderPresent(_renderer);
         }
         else
         {
-            SDL_RenderCopy(_renderer, _screenTexture, nullptr, nullptr);
-        }
+            // Directly blit the surface to the window.
+            if (SDL_BlitSurface(_screenSurface, nullptr, SDL_GetWindowSurface(_window), nullptr))
+            {
+                Logging::error("SDL_BlitSurface {}", SDL_GetError());
+                exit(1);
+            }
 
-        // Display buffers.
-        SDL_RenderPresent(_renderer);
+            // Update the window surface.
+            SDL_UpdateWindowSurface(_window);
+        }
     }
 
     DrawingContext& SoftwareDrawingEngine::getDrawingContext()
@@ -353,14 +360,57 @@ namespace OpenLoco::Gfx
         return _ctx;
     }
 
-    bool SoftwareDrawingEngine::isInitialized() const
-    {
-        return _screenSurface != nullptr;
-    }
-
     const RenderTarget& SoftwareDrawingEngine::getScreenRT()
     {
         return _screenRT;
     }
 
+    void SoftwareDrawingEngine::movePixels(
+        const RenderTarget& rt,
+        int16_t dstX,
+        int16_t dstY,
+        int16_t width,
+        int16_t height,
+        int16_t srcX,
+        int16_t srcY)
+    {
+        if (dstX == 0 && dstY == 0)
+        {
+            return;
+        }
+
+        // Adjust for move off canvas.
+        // NOTE: when zooming, there can be x, y, dx, dy combinations that go off the
+        // canvas; hence the checks. This code should ultimately not be called when
+        // zooming because this function is specific to updating the screen on move
+        int32_t lmargin = std::min(dstX - srcX, 0);
+        int32_t rmargin = std::min((int32_t)rt.width - (dstX - srcX + width), 0);
+        int32_t tmargin = std::min(dstY - srcY, 0);
+        int32_t bmargin = std::min((int32_t)rt.height - (dstY - srcY + height), 0);
+
+        dstX -= lmargin;
+        dstY -= tmargin;
+        width += lmargin + rmargin;
+        height += tmargin + bmargin;
+
+        int32_t stride = rt.width + rt.pitch;
+        uint8_t* to = rt.bits + dstY * stride + dstX;
+        uint8_t* from = rt.bits + (dstY - srcY) * stride + dstX - srcX;
+
+        if (srcY > 0)
+        {
+            // If positive dy, reverse directions
+            to += (height - 1) * stride;
+            from += (height - 1) * stride;
+            stride = -stride;
+        }
+
+        // Move bytes
+        for (int32_t i = 0; i < height; i++)
+        {
+            std::memmove(to, from, width);
+            to += stride;
+            from += stride;
+        }
+    }
 }

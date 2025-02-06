@@ -4,6 +4,7 @@
 #include "Graphics/Colour.h"
 #include "Graphics/Gfx.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Graphics/TextRenderer.h"
 #include "Localisation/FormatArguments.hpp"
@@ -16,9 +17,11 @@
 #include "SceneManager.h"
 #include "Ui/ScrollView.h"
 #include "Ui/Widget.h"
+#include "Ui/Widgets/CaptionWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
 #include "Ui/Widgets/TabWidget.h"
+#include "Ui/Widgets/Wt3Widget.h"
 #include "Ui/WindowManager.h"
 
 using namespace OpenLoco::Diagnostics;
@@ -46,9 +49,9 @@ namespace OpenLoco::Ui::Windows::ScenarioSelect
 
     static constexpr auto _widgets = makeWidgets(
         Widgets::Frame({ 0, 0 }, { 610, 412 }, WindowColour::primary),
-        makeWidget({ 1, 1 }, { 608, 13 }, WidgetType::caption_25, WindowColour::primary, StringIds::select_scenario_for_new_game),
+        Widgets::Caption({ 1, 1 }, { 608, 13 }, CaptionVariant::whiteText, WindowColour::primary, StringIds::select_scenario_for_new_game),
         Widgets::ImageButton({ 595, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
-        makeWidget({ 0, 48 }, { 610, 364 }, WidgetType::wt_3, WindowColour::secondary),
+        Widgets::Wt3Widget({ 0, 48 }, { 610, 364 }, WindowColour::secondary),
         Widgets::Tab({ 3, 15 }, { 91, 34 }, WindowColour::secondary, ImageIds::wide_tab),
         Widgets::Tab({ 94, 15 }, { 91, 34 }, WindowColour::secondary, ImageIds::wide_tab),
         Widgets::Tab({ 185, 15 }, { 91, 34 }, WindowColour::secondary, ImageIds::wide_tab),
@@ -514,7 +517,7 @@ namespace OpenLoco::Ui::Windows::ScenarioSelect
         // Mouse click sound
         Audio::playSound(Audio::SoundId::clickDown, self.x + (self.width / 2));
 
-        if (isNetworked())
+        if (SceneManager::isNetworked())
         {
             GameCommands::do_67(scenarioInfo->filename);
         }

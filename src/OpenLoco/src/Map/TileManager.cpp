@@ -1249,7 +1249,7 @@ namespace OpenLoco::World::TileManager
     }
 
     // 0x00468651
-    uint32_t adjustSurfaceHeight(World::Pos2 pos, SmallZ targetBaseZ, uint8_t slopeFlags, std::set<World::Pos3, LessThanPos3>& removedBuildings, uint8_t flags)
+    uint32_t adjustSurfaceHeight(World::Pos2 pos, SmallZ targetBaseZ, uint8_t slopeFlags, World::TileClearance::RemovedBuildings& removedBuildings, uint8_t flags)
     {
         if (!validCoords(pos))
         {
@@ -1276,7 +1276,7 @@ namespace OpenLoco::World::TileManager
         {
             removeSurfaceIndustry(pos);
 
-            if (!isEditorMode())
+            if (!SceneManager::isEditorMode())
             {
                 setTerrainStyleAsCleared(pos);
             }
@@ -1400,7 +1400,7 @@ namespace OpenLoco::World::TileManager
         }
 
         surface = tileIt.surface();
-        if (!isEditorMode())
+        if (!SceneManager::isEditorMode())
         {
             // Reset terrain growth when not in editor
             surface->setTerrain(surface->terrain());
@@ -1411,7 +1411,7 @@ namespace OpenLoco::World::TileManager
         surface->setSlope(slopeFlags);
 
         landObj = ObjectManager::get<LandObject>(surface->terrain());
-        if (landObj->hasFlags(LandObjectFlags::unk1) && !isEditorMode())
+        if (landObj->hasFlags(LandObjectFlags::unk1) && !SceneManager::isEditorMode())
         {
             surface->setTerrain(landObj->cliffEdgeHeader2);
         }
@@ -1426,7 +1426,7 @@ namespace OpenLoco::World::TileManager
     }
 
     // 0x004C4C28
-    uint32_t adjustWaterHeight(World::Pos2 pos, SmallZ targetHeight, std::set<World::Pos3, LessThanPos3>& removedBuildings, uint8_t flags)
+    uint32_t adjustWaterHeight(World::Pos2 pos, SmallZ targetHeight, World::TileClearance::RemovedBuildings& removedBuildings, uint8_t flags)
     {
         GameCommands::setExpenditureType(ExpenditureType::Construction);
         GameCommands::setPosition(World::Pos3(pos.x + World::kTileSize / 2, pos.y + World::kTileSize / 2, targetHeight * kMicroToSmallZStep));
@@ -1449,7 +1449,7 @@ namespace OpenLoco::World::TileManager
         {
             removeSurfaceIndustry(pos);
 
-            if (!isEditorMode())
+            if (!SceneManager::isEditorMode())
             {
                 setTerrainStyleAsCleared(pos);
             }

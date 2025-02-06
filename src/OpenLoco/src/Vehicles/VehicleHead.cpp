@@ -22,6 +22,7 @@
 #include "MessageManager.h"
 #include "Objects/AirportObject.h"
 #include "Objects/CargoObject.h"
+#include "Objects/DockObject.h"
 #include "Objects/IndustryObject.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/RoadObject.h"
@@ -78,6 +79,28 @@ namespace OpenLoco::Vehicles
     static constexpr uint8_t kRestartStoppedRoadVehiclesTimeout = 20; // Number of days before stopped road vehicle (bus and tram) is restarted
     static constexpr uint16_t kReliabilityLossPerDay = 4;
     static constexpr uint16_t kReliabilityLossPerDayObsolete = 10;
+
+    struct WaterPathingResult
+    {
+        World::Pos2 headTarget;
+
+        StationId stationId; // If stationId is null, stationPosition is invalid
+        World::Pos3 stationPos;
+
+        constexpr WaterPathingResult(const World::Pos2 headTarget, const StationId stationId, const World::Pos3 stationPos)
+            : headTarget(headTarget)
+            , stationId(stationId)
+            , stationPos(stationPos)
+        {
+        }
+        explicit constexpr WaterPathingResult(const World::Pos2 headTarget)
+            : headTarget(headTarget)
+            , stationId(StationId::null)
+            , stationPos({})
+        {
+        }
+    };
+    static WaterPathingResult waterPathfind(const VehicleHead& head);
 
     void VehicleHead::updateVehicle()
     {
@@ -387,7 +410,7 @@ namespace OpenLoco::Vehicles
                 }
             }
 
-            if (car.front->hasBreakdownFlags(BreakdownFlags::breakdownPending) && !isTitleMode())
+            if (car.front->hasBreakdownFlags(BreakdownFlags::breakdownPending) && !SceneManager::isTitleMode())
             {
                 auto newConfig = Config::get();
                 if (!newConfig.breakdownsDisabled)
@@ -842,7 +865,7 @@ namespace OpenLoco::Vehicles
         Vehicle2* vehType2_2 = _vehicleUpdate_2;
         uint16_t targetFrequency = 0;
         uint8_t targetVolume = 0;
-        if (vehType2_2->var_5A == 2)
+        if (vehType2_2->motorState == MotorState::coasting)
         {
             if (vehType2_2->currentSpeed < 12.0_mph)
             {
@@ -855,7 +878,7 @@ namespace OpenLoco::Vehicles
                 targetVolume = snd->var_06;
             }
         }
-        else if (vehType2_2->var_5A == 1)
+        else if (vehType2_2->motorState == MotorState::accelerating)
         {
             if (!(vehType2or6->isVehicle2()) || train.cars.firstCar.front->wheelSlipping == 0)
             {
@@ -937,7 +960,7 @@ namespace OpenLoco::Vehicles
         uint8_t targetVolume = 0;
         bool var5aEqual1Code = false;
 
-        if (vehType2_2->var_5A == 2 || vehType2_2->var_5A == 3)
+        if (vehType2_2->motorState == MotorState::coasting || vehType2_2->motorState == MotorState::braking)
         {
             if (vehType2_2->currentSpeed < 12.0_mph)
             {
@@ -950,7 +973,7 @@ namespace OpenLoco::Vehicles
                 var5aEqual1Code = true;
             }
         }
-        else if (vehType2_2->var_5A == 1)
+        else if (vehType2_2->motorState == MotorState::accelerating)
         {
             targetVolume = snd->var_13;
             var5aEqual1Code = true;
@@ -1534,16 +1557,16 @@ namespace OpenLoco::Vehicles
 
         if (type2speed == type1speed)
         {
-            vehType2->var_5A = 5;
+            vehType2->motorState = MotorState::airplaneAtTaxiSpeed;
 
             if (type2speed != 20.0_mph)
             {
-                vehType2->var_5A = 2;
+                vehType2->motorState = MotorState::coasting;
             }
         }
         else if (type2speed > type1speed)
         {
-            vehType2->var_5A = 2;
+            vehType2->motorState = MotorState::coasting;
             auto decelerationAmount = 2.0_mph;
             if (type2speed >= 130.0_mph)
             {
@@ -1560,7 +1583,7 @@ namespace OpenLoco::Vehicles
 
             if (type1speed == 20.0_mph)
             {
-                vehType2->var_5A = 3;
+                vehType2->motorState = MotorState::braking;
             }
 
             type2speed = std::max<Speed32>(0.0_mph, type2speed - decelerationAmount);
@@ -1569,7 +1592,7 @@ namespace OpenLoco::Vehicles
         }
         else
         {
-            vehType2->var_5A = 1;
+            vehType2->motorState = MotorState::accelerating;
             type2speed += 2.0_mph;
             type2speed = std::min<Speed32>(type2speed, type1speed);
             vehType2->currentSpeed = type2speed;
@@ -1585,10 +1608,10 @@ namespace OpenLoco::Vehicles
         {
             _vehicleUpdate_helicopterTargetYaw = targetYaw;
             targetYaw = spriteYaw;
-            vehType2->var_5A = 1;
+            vehType2->motorState = MotorState::accelerating;
             if (targetZ < position.z)
             {
-                vehType2->var_5A = 2;
+                vehType2->motorState = MotorState::coasting;
             }
         }
 
@@ -1717,7 +1740,7 @@ namespace OpenLoco::Vehicles
         else
         {
             vehType2->currentSpeed = 0.0_mph;
-            vehType2->var_5A = 0;
+            vehType2->motorState = MotorState::stopped;
             return true;
         }
     }
@@ -1832,7 +1855,7 @@ namespace OpenLoco::Vehicles
     {
         Vehicle2* vehType2 = _vehicleUpdate_2;
         vehType2->currentSpeed = 0.0_mph;
-        vehType2->var_5A = 0;
+        vehType2->motorState = MotorState::stopped;
         if (updateLoadCargo())
         {
             return true;
@@ -2070,7 +2093,7 @@ namespace OpenLoco::Vehicles
 
             status = Status::stopped;
             vehType2->currentSpeed = 0.0_mph;
-            vehType2->var_5A = 0;
+            vehType2->motorState = MotorState::stopped;
             return true;
         }
 
@@ -2108,7 +2131,7 @@ namespace OpenLoco::Vehicles
             {
                 status = Status::stopped;
                 vehType2->currentSpeed = 0.0_mph;
-                vehType2->var_5A = 0;
+                vehType2->motorState = MotorState::stopped;
                 return true;
             }
 
@@ -2626,23 +2649,23 @@ namespace OpenLoco::Vehicles
 
         if (targetSpeed == veh2->currentSpeed)
         {
-            veh2->var_5A = 2;
+            veh2->motorState = MotorState::coasting;
         }
         else if (targetSpeed < veh2->currentSpeed)
         {
-            veh2->var_5A = 2;
+            veh2->motorState = MotorState::coasting;
             auto decelerationRate = 1.0_mph;
             if (veh2->currentSpeed >= 50.0_mph)
             {
                 decelerationRate = 3.0_mph;
             }
-            veh2->var_5A = 3;
+            veh2->motorState = MotorState::braking;
             auto newSpeed = std::max(veh2->currentSpeed - decelerationRate, 0.0_mph);
             veh2->currentSpeed = std::max<Speed32>(targetSpeed, newSpeed);
         }
         else
         {
-            veh2->var_5A = 1;
+            veh2->motorState = MotorState::accelerating;
             veh2->currentSpeed = std::min<Speed32>(targetSpeed, veh2->currentSpeed + 0.333333_mph);
         }
 
@@ -2711,15 +2734,15 @@ namespace OpenLoco::Vehicles
                     }
                 }
             }
-            auto [newStationId, headTarget, stationTarget] = sub_427FC9();
-            moveTo({ headTarget.x, headTarget.y, 32 });
+            auto pathingResult = waterPathfind(*this);
+            moveTo({ pathingResult.headTarget, 32 });
 
-            if (newStationId != StationId::null)
+            if (pathingResult.stationId != StationId::null)
             {
-                stationId = newStationId;
-                tileX = stationTarget.x;
-                tileY = stationTarget.y;
-                tileBaseZ = stationTarget.z / 4;
+                stationId = pathingResult.stationId;
+                tileX = pathingResult.stationPos.x;
+                tileY = pathingResult.stationPos.y;
+                tileBaseZ = pathingResult.stationPos.z / 4;
 
                 auto targetTile = TileManager::get(World::Pos2{ tileX, tileY });
                 StationElement* station = nullptr;
@@ -3401,15 +3424,237 @@ namespace OpenLoco::Vehicles
         }
     }
 
-    // 0x00427FC9
-    std::tuple<StationId, World::Pos2, World::Pos3> VehicleHead::sub_427FC9()
+    struct NearbyBoats
     {
-        registers regs;
-        regs.esi = X86Pointer(this);
-        call(0x00427FC9, regs);
-        World::Pos2 headTarget = { regs.ax, regs.cx };
-        World::Pos3 stationTarget = { regs.di, regs.bp, regs.dx };
-        return std::make_tuple(StationId(regs.bx), headTarget, stationTarget);
+        std::array<std::array<bool, 16>, 16> searchResult; // 0x00525BEC
+        World::TilePos2 startTile;                         // 0x00525BE8
+    };
+
+    // 0x00427F1C
+    static NearbyBoats findNearbyTilesWithBoats(const World::Pos2 pos)
+    {
+        const auto tilePosA = World::toTileSpace(pos) - World::TilePos2(7, 7);
+        const auto tilePosB = World::toTileSpace(pos) + World::TilePos2(7, 7);
+
+        NearbyBoats res{};
+        res.startTile = tilePosA;
+
+        for (const auto& tileLoc : getClampedRange(tilePosA, tilePosB))
+        {
+            for (auto* entity : EntityManager::EntityTileList(World::toWorldSpace(tileLoc)))
+            {
+                auto* vehicleEntity = entity->asBase<VehicleBase>();
+                if (vehicleEntity == nullptr)
+                {
+                    continue;
+                }
+                if (vehicleEntity->getTransportMode() != TransportMode::water)
+                {
+                    continue;
+                }
+                if (vehicleEntity->getSubType() != VehicleEntityType::body_start)
+                {
+                    continue;
+                }
+                const auto resultLoc = tileLoc - res.startTile;
+                res.searchResult[resultLoc.x][resultLoc.y] = true;
+            }
+        }
+        return res;
+    }
+
+    // 0x00428379
+    static std::optional<WaterPathingResult> getDockTargetFromStation(StationId stationId)
+    {
+        auto* station = StationManager::get(stationId);
+        for (auto i = 0U; i < station->stationTileSize; ++i)
+        {
+            // Remember z needs floored
+            const auto& pos = station->stationTiles[i];
+
+            StationElement* elStation = [&pos]() -> World::StationElement* {
+                auto tile = TileManager::get(pos);
+                for (auto& el : tile)
+                {
+                    auto* elStation = el.as<StationElement>();
+                    if (elStation == nullptr)
+                    {
+                        continue;
+                    }
+                    if (elStation->isGhost() || elStation->isAiAllocated())
+                    {
+                        continue;
+                    }
+                    if (elStation->baseZ() != pos.z / World::kSmallZStep)
+                    {
+                        continue;
+                    }
+                    return elStation;
+                }
+                return nullptr;
+            }();
+            if (elStation == nullptr)
+            {
+                continue;
+            }
+            if (elStation->stationType() != StationType::docks)
+            {
+                continue;
+            }
+            if (elStation->isFlag6())
+            {
+                continue;
+            }
+
+            const auto* dockObj = ObjectManager::get<DockObject>(elStation->objectId());
+            const auto boatPos = Math::Vector::rotate(dockObj->boatPosition, elStation->rotation()) + pos;
+            auto dockTarget = WaterPathingResult(
+                boatPos + World::Pos2{ 32, 32 },
+                stationId,
+                World::Pos3{ pos.x, pos.y, Numerics::floor2(pos.z, 4) });
+            return dockTarget;
+        }
+        return std::nullopt;
+    }
+
+    struct PathFindingResult
+    {
+        uint16_t bestScore;
+        uint8_t cost;
+
+        constexpr auto operator<=>(const PathFindingResult& rhs) const = default;
+    };
+
+    // 0x00428237
+    static PathFindingResult waterPathfindToTarget(const World::TilePos2 tilePos, const MicroZ waterMicroZ, const World::TilePos2 targetOrderPos, const NearbyBoats& nearbyVehicles, uint8_t cost, const PathFindingResult& bestResult)
+    {
+        PathFindingResult result = bestResult;
+        if (!validCoords(tilePos))
+        {
+            return result;
+        }
+        auto tile = TileManager::get(tilePos);
+        auto* elSurface = tile.surface();
+        if (elSurface->water() != waterMicroZ)
+        {
+            return result;
+        }
+        if (!elSurface->isLast())
+        {
+            auto* elObsticle = elSurface->next();
+            if (elObsticle != nullptr && !elObsticle->isGhost() && !elObsticle->isAiAllocated())
+            {
+                if (elObsticle->baseZ() / kMicroToSmallZStep - waterMicroZ < 1)
+                {
+                    return result;
+                }
+            }
+        }
+
+        const auto nearbyIndex = tilePos - nearbyVehicles.startTile;
+        // Vanilla made a mistake here so we only check nearby tiles if in range
+        // TODO: When we diverge just change the cost check to >= 6 or increase the search result to 18x18
+        if (nearbyIndex.x >= 0 && nearbyIndex.x < 16 && nearbyIndex.y >= 0 && nearbyIndex.y < 16)
+        {
+            if (nearbyVehicles.searchResult[nearbyIndex.x][nearbyIndex.y])
+            {
+                return result;
+            }
+        }
+        auto distToTarget = toWorldSpace(tilePos - targetOrderPos);
+        distToTarget.x = std::abs(distToTarget.x);
+        distToTarget.y = std::abs(distToTarget.y);
+        // Lower is better
+        const uint16_t score = std::max(distToTarget.x, distToTarget.y) + std::min(distToTarget.x, distToTarget.y) / 16;
+        auto newResult = PathFindingResult{ score, cost };
+        result = std::min(result, newResult);
+        if (score != 0)
+        {
+            if (cost >= 7)
+            {
+                return result;
+            }
+            cost++;
+            for (auto i = 0U; i < 4; ++i)
+            {
+                result = waterPathfindToTarget(tilePos + toTileSpace(kRotationOffset[i]), waterMicroZ, targetOrderPos, nearbyVehicles, cost, result);
+            }
+        }
+        return result;
+    }
+
+    // 0x00427FC9
+    static WaterPathingResult waterPathfind(const VehicleHead& head)
+    {
+        const auto nearbyVehicles = findNearbyTilesWithBoats(head.position);
+
+        auto orders = head.getCurrentOrders();
+        auto curOrder = orders.begin();
+        auto* stationOrder = curOrder->as<OrderStation>();
+        auto* routeOrder = curOrder->as<OrderRouteWaypoint>();
+
+        std::optional<WaterPathingResult> dockRes = std::nullopt;
+        // 0x00525BC6
+        World::TilePos2 targetOrderPos{};
+        if (routeOrder != nullptr)
+        {
+            targetOrderPos = toTileSpace(routeOrder->getWaypoint());
+        }
+        else if (stationOrder != nullptr)
+        {
+            auto targetStationId = stationOrder->getStation();
+            dockRes = getDockTargetFromStation(targetStationId);
+            if (dockRes.has_value())
+            {
+                targetOrderPos = toTileSpace(dockRes->headTarget);
+            }
+            else
+            {
+                auto* station = StationManager::get(targetStationId);
+                targetOrderPos = toTileSpace(Pos2{ station->x, station->y });
+            }
+        }
+        else
+        {
+            targetOrderPos = toTileSpace(head.position);
+        }
+
+        Vehicle train(head);
+        const auto& veh2 = *train.veh2;
+        // 0x00525BE3
+        const uint8_t curRotation = ((veh2.spriteYaw + 7) >> 4) & 3;
+
+        const auto initialTile = toTileSpace(head.position);
+        const auto waterMicroZ = veh2.position.z / World::kMicroZStep;
+
+        PathFindingResult bestResult{ std::numeric_limits<uint16_t>::max(), std::numeric_limits<uint8_t>::max() };
+        uint8_t bestResultDirection = 0xFFU;
+        for (auto i = 0U; i < 4; ++i)
+        {
+            const auto tilePos = initialTile + toTileSpace(kRotationOffset[i]);
+            PathFindingResult initResult{ std::numeric_limits<uint16_t>::max(), std::numeric_limits<uint8_t>::max() };
+            const auto pathResult = waterPathfindToTarget(tilePos, waterMicroZ, targetOrderPos, nearbyVehicles, 0, initResult);
+            if (pathResult != initResult && (pathResult < bestResult || (pathResult == bestResult && i == curRotation)))
+            {
+                bestResult = pathResult;
+                bestResultDirection = i;
+            }
+        }
+
+        if (bestResultDirection == 0xFF)
+        {
+            return WaterPathingResult(toWorldSpace(initialTile) + World::Pos2(16, 16));
+        }
+
+        if (dockRes.has_value() && bestResult == PathFindingResult{ 0, 0 })
+        {
+            return dockRes.value();
+        }
+        else
+        {
+            const auto targetPos = toWorldSpace(initialTile) + kRotationOffset[bestResultDirection] + World::Pos2(16, 16);
+            return WaterPathingResult(targetPos);
+        }
     }
 
     // 0x0042750E

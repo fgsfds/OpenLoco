@@ -1,3 +1,4 @@
+#include "ScenarioOptions.h"
 #include "Economy/Economy.h"
 #include "GameState.h"
 #include "Graphics/Colour.h"
@@ -11,7 +12,6 @@
 #include "Objects/InterfaceSkinObject.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/ScenarioTextObject.h"
-#include "S5/S5.h"
 #include "Scenario.h"
 #include "ScenarioObjective.h"
 #include "SceneManager.h"
@@ -19,6 +19,8 @@
 #include "Ui/ToolManager.h"
 #include "Ui/Widget.h"
 #include "Ui/Widgets/ButtonWidget.h"
+#include "Ui/Widgets/CaptionWidget.h"
+#include "Ui/Widgets/CheckboxWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/GroupBoxWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
@@ -53,7 +55,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
         {
             return makeWidgets(
                 Widgets::Frame({ 0, 0 }, { 366, frameHeight }, WindowColour::primary),
-                makeWidget({ 1, 1 }, { 364, 13 }, WidgetType::caption_25, WindowColour::primary, windowCaptionId),
+                Widgets::Caption({ 1, 1 }, { 364, 13 }, CaptionVariant::whiteText, WindowColour::primary, windowCaptionId),
                 Widgets::ImageButton({ 351, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
                 Widgets::Panel({ 0, 41 }, { 366, 175 }, WindowColour::secondary),
                 Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_scenario_challenge),
@@ -195,9 +197,9 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             makeDropdownWidgets({ 10, 52 }, { 346, 12 }, WindowColour::secondary),
             makeStepperWidgets({ 10, 67 }, { 163, 12 }, WindowColour::secondary),
             makeDropdownWidgets({ 193, 67 }, { 163, 12 }, WindowColour::secondary),
-            makeWidget({ 10, 83 }, { 346, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::and_be_the_top_company),
-            makeWidget({ 10, 98 }, { 346, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::and_be_within_the_top_companies),
-            makeWidget({ 10, 113 }, { 346, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::with_a_time_limit),
+            Widgets::Checkbox({ 10, 83 }, { 346, 12 }, WindowColour::secondary, StringIds::and_be_the_top_company),
+            Widgets::Checkbox({ 10, 98 }, { 346, 12 }, WindowColour::secondary, StringIds::and_be_within_the_top_companies),
+            Widgets::Checkbox({ 10, 113 }, { 346, 12 }, WindowColour::secondary, StringIds::with_a_time_limit),
             makeStepperWidgets({ 256, 112 }, { 100, 12 }, WindowColour::secondary, StringIds::time_limit_years_value)
 
         );
@@ -624,19 +626,19 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             makeDropdownWidgets({ 246, 117 - 4 }, { 110, 12 }, WindowColour::secondary),
             makeDropdownWidgets({ 246, 132 - 4 }, { 110, 12 }, WindowColour::secondary),
             Widgets::GroupBox({ 5, 150 }, { 356, 50 }, WindowColour::secondary, StringIds::forbid_competing_companies_from_using),
-            makeWidget({ 15, 166 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trains),
-            makeWidget({ 15, 180 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trams),
-            makeWidget({ 130, 166 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_buses),
-            makeWidget({ 130, 180 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trucks),
-            makeWidget({ 260, 166 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_aircraft),
-            makeWidget({ 260, 180 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_ships),
+            Widgets::Checkbox({ 15, 166 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trains),
+            Widgets::Checkbox({ 15, 180 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trams),
+            Widgets::Checkbox({ 130, 166 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_buses),
+            Widgets::Checkbox({ 130, 180 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trucks),
+            Widgets::Checkbox({ 260, 166 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_aircraft),
+            Widgets::Checkbox({ 260, 180 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_ships),
             Widgets::GroupBox({ 5, 202 }, { 356, 50 }, WindowColour::secondary, StringIds::forbid_player_companies_from_using),
-            makeWidget({ 15, 219 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trains),
-            makeWidget({ 15, 233 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trams),
-            makeWidget({ 130, 219 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_buses),
-            makeWidget({ 130, 233 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_trucks),
-            makeWidget({ 260, 219 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_aircraft),
-            makeWidget({ 260, 233 }, { 341, 12 }, WidgetType::checkbox, WindowColour::secondary, StringIds::forbid_ships)
+            Widgets::Checkbox({ 15, 219 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trains),
+            Widgets::Checkbox({ 15, 233 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trams),
+            Widgets::Checkbox({ 130, 219 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_buses),
+            Widgets::Checkbox({ 130, 233 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_trucks),
+            Widgets::Checkbox({ 260, 219 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_aircraft),
+            Widgets::Checkbox({ 260, 233 }, { 341, 12 }, WindowColour::secondary, StringIds::forbid_ships)
 
         );
 
@@ -805,7 +807,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
                         state.forbiddenVehiclesCompetitors = newForbiddenVehicles;
                         self.invalidate();
                     }
-                    if (!isEditorMode())
+                    if (!SceneManager::isEditorMode())
                     {
                         CompanyManager::determineAvailableVehicles();
                         WindowManager::invalidate(WindowType::vehicleList);
@@ -828,7 +830,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
                         state.forbiddenVehiclesPlayers = newForbiddenVehicles;
                         self.invalidate();
                     }
-                    if (!isEditorMode())
+                    if (!SceneManager::isEditorMode())
                     {
                         CompanyManager::determineAvailableVehicles();
                         WindowManager::invalidate(WindowType::buildVehicle);
@@ -1064,7 +1066,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             {
                 // Prepare scenario name text.
                 char* buffer = (char*)StringManager::getString(StringIds::buffer_2039);
-                strncpy(buffer, S5::getOptions().scenarioName, 512);
+                strncpy(buffer, Scenario::getOptions().scenarioName, 512);
 
                 FormatArguments args{};
                 args.push(StringIds::buffer_2039);
@@ -1103,7 +1105,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             {
                 // Prepare scenario details text.
                 char* buffer = (char*)StringManager::getString(StringIds::buffer_2039);
-                strncpy(buffer, S5::getOptions().scenarioDetails, 512);
+                strncpy(buffer, Scenario::getOptions().scenarioDetails, 512);
 
                 FormatArguments args{};
                 args.push(StringIds::buffer_2039);
@@ -1134,7 +1136,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
         {
             if (widgetIndex == widx::scenario_group_btn && itemIndex != -1)
             {
-                S5::getOptions().difficulty = itemIndex;
+                Scenario::getOptions().difficulty = itemIndex;
                 self.invalidate();
             }
         }
@@ -1152,7 +1154,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
                     Dropdown::add(i, StringIds::dropdown_stringid, scenarioGroupLabelIds[i]);
                 }
 
-                Dropdown::setItemSelected(S5::getOptions().difficulty);
+                Dropdown::setItemSelected(Scenario::getOptions().difficulty);
             }
         }
 
@@ -1175,8 +1177,8 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
                 case widx::change_name_btn:
                 {
                     char* buffer = (char*)StringManager::getString(StringIds::buffer_2039);
-                    strncpy(buffer, S5::getOptions().scenarioName, 512);
-                    auto inputSize = std::size(S5::getOptions().scenarioName) - 1;
+                    strncpy(buffer, Scenario::getOptions().scenarioName, 512);
+                    auto inputSize = std::size(Scenario::getOptions().scenarioName) - 1;
 
                     TextInput::openTextInput(&self, StringIds::scenario_name_title, StringIds::enter_name_for_scenario, StringIds::buffer_2039, widgetIndex, nullptr, inputSize);
                     break;
@@ -1185,8 +1187,8 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
                 case widx::change_details_btn:
                 {
                     char* buffer = (char*)StringManager::getString(StringIds::buffer_2039);
-                    strncpy(buffer, S5::getOptions().scenarioDetails, 512);
-                    auto inputSize = std::size(S5::getOptions().scenarioDetails) - 1;
+                    strncpy(buffer, Scenario::getOptions().scenarioDetails, 512);
+                    auto inputSize = std::size(Scenario::getOptions().scenarioDetails) - 1;
 
                     TextInput::openTextInput(&self, StringIds::scenario_details_title, StringIds::enter_description_of_this_scenario, StringIds::buffer_2039, widgetIndex, nullptr, inputSize);
                     break;
@@ -1199,7 +1201,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
         {
             Common::prepareDraw(self);
 
-            self.widgets[widx::scenario_group].text = scenarioGroupLabelIds[S5::getOptions().difficulty];
+            self.widgets[widx::scenario_group].text = scenarioGroupLabelIds[Scenario::getOptions().difficulty];
         }
 
         static void unloadScenarioTextObjects()
@@ -1221,8 +1223,8 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             {
                 case widx::change_name_btn:
                 {
-                    strncpy(S5::getOptions().scenarioName, input, sizeof(S5::Options::scenarioName) - 1);
-                    S5::getOptions().scenarioName[sizeof(S5::Options::scenarioName) - 1] = '\0';
+                    strncpy(Scenario::getOptions().scenarioName, input, sizeof(Scenario::Options::scenarioName) - 1);
+                    Scenario::getOptions().scenarioName[sizeof(Scenario::Options::scenarioName) - 1] = '\0';
                     unloadScenarioTextObjects();
                     self.invalidate();
                     break;
@@ -1230,8 +1232,8 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
 
                 case widx::change_details_btn:
                 {
-                    strncpy(S5::getOptions().scenarioDetails, input, sizeof(S5::Options::scenarioDetails) - 1);
-                    S5::getOptions().scenarioDetails[sizeof(S5::Options::scenarioDetails) - 1] = '\0';
+                    strncpy(Scenario::getOptions().scenarioDetails, input, sizeof(Scenario::Options::scenarioDetails) - 1);
+                    Scenario::getOptions().scenarioDetails[sizeof(Scenario::Options::scenarioDetails) - 1] = '\0';
                     unloadScenarioTextObjects();
                     self.invalidate();
                     break;
@@ -1282,7 +1284,7 @@ namespace OpenLoco::Ui::Windows::ScenarioOptions
             widx widgetIndex = tabInformationByTabOffset[self.currentTab].widgetIndex;
             self.activatedWidgets |= (1ULL << widgetIndex);
 
-            if (isEditorMode())
+            if (SceneManager::isEditorMode())
             {
                 // Disable close button in the scenario editor.
                 self.widgets[Common::widx::close_button].type = WidgetType::none;

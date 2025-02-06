@@ -15,6 +15,7 @@
 #include "GameState.h"
 #include "Graphics/Colour.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Graphics/TextRenderer.h"
 #include "Input.h"
@@ -38,9 +39,12 @@
 #include "Ui/ToolManager.h"
 #include "Ui/ViewportInteraction.h"
 #include "Ui/Widget.h"
+#include "Ui/Widgets/CaptionWidget.h"
+#include "Ui/Widgets/ColourButtonWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
 #include "Ui/Widgets/PanelWidget.h"
+#include "Ui/Widgets/Wt3Widget.h"
 #include "Ui/WindowManager.h"
 #include "World/CompanyManager.h"
 #include <OpenLoco/Core/Numerics.hpp>
@@ -76,7 +80,7 @@ namespace OpenLoco::Ui::Windows::Terraform
         {
             return makeWidgets(
                 Widgets::Frame({ 0, 0 }, { frameWidth, frameHeight }, WindowColour::primary),
-                makeWidget({ 1, 1 }, { frameWidth - 2, 13 }, WidgetType::caption_24, WindowColour::primary, windowCaptionId),
+                Widgets::Caption({ 1, 1 }, { frameWidth - 2, 13 }, CaptionVariant::colourText, WindowColour::primary, windowCaptionId),
                 Widgets::ImageButton({ frameWidth - 15, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
                 Widgets::Panel({ 0, 41 }, { 130, 74 }, WindowColour::secondary),
                 makeWidget({ 3, 15 }, { 31, 27 }, WidgetType::wt_6, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_clear_land),
@@ -152,7 +156,7 @@ namespace OpenLoco::Ui::Windows::Terraform
             Common::makeCommonWidgets(634, 162, StringIds::title_plant_trees),
             makeWidget({ 3, 45 }, { 605, 101 }, WidgetType::scrollview, WindowColour::secondary, Scrollbars::vertical),
             Widgets::ImageButton({ 609, 46 }, { 24, 24 }, WindowColour::secondary, ImageIds::rotate_object, StringIds::rotate_object_90),
-            makeWidget({ 609, 70 }, { 24, 24 }, WidgetType::buttonWithColour, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_object_colour),
+            Widgets::ColourButton({ 609, 70 }, { 24, 24 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_object_colour),
             Widgets::ImageButton({ 609, 94 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_selected_tree, StringIds::plant_cluster_selected_tree),
             Widgets::ImageButton({ 609, 118 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_random_tree, StringIds::plant_cluster_random_tree)
 
@@ -510,7 +514,7 @@ namespace OpenLoco::Ui::Windows::Terraform
             args.quadrant = World::getQuadrantFromPos(res->first) ^ (1 << 1);
             args.colour = *_treeColour;
             args.rotation = (_treeRotation - WindowManager::getCurrentRotation()) & 0x3;
-            if (isEditorMode())
+            if (SceneManager::isEditorMode())
             {
                 args.buildImmediately = true;
             }
@@ -579,7 +583,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     case treeCluster::selected:
                     {
                         auto previousId = GameCommands::getUpdatingCompanyId();
-                        if (isEditorMode())
+                        if (SceneManager::isEditorMode())
                         {
                             GameCommands::setUpdatingCompanyId(CompanyId::neutral);
                         }
@@ -594,7 +598,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                             Error::open(StringIds::cant_plant_this_here, StringIds::empty);
                         }
 
-                        if (isEditorMode())
+                        if (SceneManager::isEditorMode())
                         {
                             GameCommands::setUpdatingCompanyId(previousId);
                         }
@@ -602,7 +606,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     }
                     case treeCluster::random:
                         auto previousId = GameCommands::getUpdatingCompanyId();
-                        if (isEditorMode())
+                        if (SceneManager::isEditorMode())
                         {
                             GameCommands::setUpdatingCompanyId(CompanyId::neutral);
                         }
@@ -617,7 +621,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                             Error::open(StringIds::cant_plant_this_here, StringIds::empty);
                         }
 
-                        if (isEditorMode())
+                        if (SceneManager::isEditorMode())
                         {
                             GameCommands::setUpdatingCompanyId(previousId);
                         }
@@ -783,7 +787,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                 treeCost = Economy::getInflationAdjustedCost(treeObj->buildCostFactor, treeObj->costIndex, 12);
             }
 
-            if (!isEditorMode())
+            if (!SceneManager::isEditorMode())
             {
                 FormatArguments args{};
                 args.push<uint32_t>(treeCost);
@@ -978,7 +982,7 @@ namespace OpenLoco::Ui::Windows::Terraform
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::clear_area),
-            makeWidget({ 33 + 16, 45 }, { 64, 44 }, WidgetType::wt_3, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_clear_area),
+            Widgets::Wt3Widget({ 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_clear_area),
             makeWidget({ 34 + 16, 46 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_clear_area),
             makeWidget({ 80 + 16, 72 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_clear_area)
 
@@ -1220,7 +1224,7 @@ namespace OpenLoco::Ui::Windows::Terraform
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::title_adjust_land),
-            makeWidget({ 49, 45 }, { 64, 44 }, WidgetType::wt_3, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_adjust_land_tool),
+            Widgets::Wt3Widget({ 49, 45 }, { 64, 44 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_adjust_land_tool),
             makeWidget({ 50, 46 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_land_area),
             makeWidget({ 96, 72 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_land_area),
             Widgets::ImageButton({ 57, 92 }, { 24, 24 }, WindowColour::secondary, ImageIds::construction_slope_up, StringIds::mountainModeTooltip),
@@ -1271,7 +1275,7 @@ namespace OpenLoco::Ui::Windows::Terraform
         // 0x004BCBF8
         static void onResize(Window& self)
         {
-            if (isEditorMode())
+            if (SceneManager::isEditorMode())
             {
                 Common::onResize(self, 115);
             }
@@ -1576,7 +1580,7 @@ namespace OpenLoco::Ui::Windows::Terraform
             uint32_t raiseCost = 0;
             uint32_t lowerCost = 0;
 
-            if (isEditorMode() || xPos == 0x8000)
+            if (SceneManager::isEditorMode() || xPos == 0x8000)
             {
                 raiseCost = 0x80000000;
                 lowerCost = 0x80000000;
@@ -1902,7 +1906,7 @@ namespace OpenLoco::Ui::Windows::Terraform
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::title_adjust_water),
-            makeWidget({ 33 + 16, 45 }, { 64, 44 }, WidgetType::wt_3, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_adjust_water_tool),
+            Widgets::Wt3Widget({ 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_adjust_water_tool),
             makeWidget({ 34 + 16, 46 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_water_area),
             makeWidget({ 80 + 16, 72 }, { 16, 16 }, WidgetType::toolbarTab, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_water_area)
 
@@ -2014,7 +2018,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                 }
             }
 
-            if (isEditorMode())
+            if (SceneManager::isEditorMode())
             {
                 setAdjustCost(0x80000000, 0x80000000);
             }

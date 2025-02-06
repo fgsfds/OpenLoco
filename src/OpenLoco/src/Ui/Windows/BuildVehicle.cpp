@@ -7,6 +7,7 @@
 #include "GameState.h"
 #include "Graphics/Colour.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Graphics/TextRenderer.h"
 #include "Input.h"
@@ -27,10 +28,13 @@
 #include "Ui/TextInput.h"
 #include "Ui/ToolManager.h"
 #include "Ui/Widget.h"
+#include "Ui/Widgets/ButtonWidget.h"
+#include "Ui/Widgets/CaptionWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
 #include "Ui/Widgets/PanelWidget.h"
 #include "Ui/Widgets/TabWidget.h"
+#include "Ui/Widgets/TextBoxWidget.h"
 #include "Ui/WindowManager.h"
 #include "Vehicles/Vehicle.h"
 #include "Vehicles/VehicleDraw.h"
@@ -217,7 +221,7 @@ namespace OpenLoco::Ui::Windows::BuildVehicle
     // 0x5231D0
     static constexpr auto _widgets = makeWidgets(
         Widgets::Frame({ 0, 0 }, { 380, 233 }, WindowColour::primary),
-        makeWidget({ 1, 1 }, { 378, 13 }, WidgetType::caption_24, WindowColour::primary),
+        Widgets::Caption({ 1, 1 }, { 378, 13 }, CaptionVariant::colourText, WindowColour::primary),
         Widgets::ImageButton({ 365, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
         Widgets::Panel({ 0, 41 }, { 380, 192 }, WindowColour::secondary),
 
@@ -246,8 +250,8 @@ namespace OpenLoco::Ui::Windows::BuildVehicle
         // Filter options
         // NB: deliberately defined after scrollview definitions to keep enums the same as original
         // TODO: can be moved after drawVehicleOverview has been implemented
-        makeWidget({ 4, 72 }, { 246, 14 }, WidgetType::textbox, WindowColour::secondary),
-        makeWidget({ 50, 72 }, { 38, 14 }, WidgetType::button, WindowColour::secondary, StringIds::clearInput),
+        Widgets::TextBox({ 4, 72 }, { 246, 14 }, WindowColour::secondary),
+        Widgets::Button({ 50, 72 }, { 38, 14 }, WindowColour::secondary, StringIds::clearInput),
         makeDropdownWidgets({ 3, 87 }, { 90, 12 }, WindowColour::secondary, StringIds::filterComponents),
         makeDropdownWidgets({ 48, 87 }, { 90, 12 }, WindowColour::secondary, StringIds::filterCargoSupported)
 

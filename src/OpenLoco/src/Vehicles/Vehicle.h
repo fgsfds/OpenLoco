@@ -26,6 +26,16 @@ namespace OpenLoco::Vehicles
     constexpr auto kMaxRoadVehicleLength = 176;    // TODO: Units?
     constexpr uint8_t kWheelSlippingDuration = 64; // In ticks
 
+    enum class MotorState : uint8_t
+    {
+        stopped = 0,
+        accelerating = 1,
+        coasting = 2,
+        braking = 3,
+        stoppedOnIncline = 4,
+        airplaneAtTaxiSpeed = 5,
+    };
+
     enum class Flags38 : uint8_t
     {
         none = 0U,
@@ -439,7 +449,6 @@ namespace OpenLoco::Vehicles
         void advanceToNextRoutableOrder();
         Status sub_427BF2();
         void produceLeavingDockSound();
-        std::tuple<StationId, World::Pos2, World::Pos3> sub_427FC9();
         void produceTouchdownAirportSound();
         uint8_t sub_4AA36A();
         void sub_4AA625();
@@ -538,7 +547,7 @@ namespace OpenLoco::Vehicles
         uint16_t totalWeight; // 0x52
         Speed16 maxSpeed;     // 0x54
         Speed32 currentSpeed; // 0x56
-        uint8_t var_5A;
+        MotorState motorState;
         uint8_t var_5B;
         Speed16 rackRailMaxSpeed;     // 0x5C
         currency32_t curMonthRevenue; // 0x5E monthly revenue
@@ -583,7 +592,7 @@ namespace OpenLoco::Vehicles
         VehicleCargo primaryCargo; // 0x48
         uint8_t pad_52[0x54 - 0x52];
         uint8_t bodyIndex; // 0x54
-        int8_t var_55;
+        int8_t chuffSoundIndex;
         uint32_t creationDay; // 0x56
         uint32_t var_5A;
         uint8_t wheelSlipping; // 0x5E timeout that counts up
@@ -613,6 +622,7 @@ namespace OpenLoco::Vehicles
     };
     static_assert(sizeof(VehicleBody) == 0x60); // Can't use offset_of change this to last field if more found
 
+    uint8_t calculateYaw0FromVector(int16_t xDiff, int16_t yDiff);
     uint8_t calculateYaw1FromVectorPlane(int16_t xDiff, int16_t yDiff);
     uint8_t calculateYaw1FromVector(int16_t xDiff, int16_t yDiff);
     uint8_t calculateYaw4FromVector(int16_t xOffset, int16_t yOffset);

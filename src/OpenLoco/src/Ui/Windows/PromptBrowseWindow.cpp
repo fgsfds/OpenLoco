@@ -3,6 +3,7 @@
 #include "Environment.h"
 #include "Graphics/Colour.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Graphics/TextRenderer.h"
 #include "Input.h"
@@ -14,13 +15,16 @@
 #include "OpenLoco.h"
 #include "S5/S5.h"
 #include "Scenario.h"
+#include "ScenarioOptions.h"
 #include "Ui.h"
 #include "Ui/TextInput.h"
 #include "Ui/Widget.h"
 #include "Ui/Widgets/ButtonWidget.h"
+#include "Ui/Widgets/CaptionWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
 #include "Ui/Widgets/PanelWidget.h"
+#include "Ui/Widgets/TextBoxWidget.h"
 #include "Ui/WindowManager.h"
 #include <OpenLoco/Core/FileSystem.hpp>
 #include <OpenLoco/Interop/Interop.hpp>
@@ -59,11 +63,11 @@ namespace OpenLoco::Ui::Windows::PromptBrowse
 
     static constexpr auto widgets = makeWidgets(
         Widgets::Frame({ 0, 0 }, { 500, 380 }, WindowColour::primary),
-        makeWidget({ 1, 1 }, { 498, 13 }, WidgetType::caption_25, WindowColour::primary, StringIds::empty),
+        Widgets::Caption({ 1, 1 }, { 498, 13 }, CaptionVariant::whiteText, WindowColour::primary, StringIds::empty),
         Widgets::ImageButton({ 485, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
         Widgets::Panel({ 0, 15 }, { 500, 365 }, WindowColour::secondary),
         Widgets::ImageButton({ 473, 18 }, { 24, 24 }, WindowColour::secondary, ImageIds::icon_parent_folder, StringIds::window_browse_parent_folder_tooltip),
-        makeWidget({ 88, 348 }, { 408, 14 }, WidgetType::textbox, WindowColour::secondary),
+        Widgets::TextBox({ 88, 348 }, { 408, 14 }, WindowColour::secondary),
         Widgets::Button({ 426, 364 }, { 70, 12 }, WindowColour::secondary, StringIds::label_button_ok),
         makeWidget({ 3, 45 }, { 494, 323 }, WidgetType::scrollview, WindowColour::secondary, Scrollbars::vertical)
 
@@ -78,7 +82,7 @@ namespace OpenLoco::Ui::Windows::PromptBrowse
     // 0x0050AEA8
     static std::unique_ptr<S5::SaveDetails> _previewSaveDetails;
     // 0x009CCA54
-    static std::unique_ptr<S5::Options> _previewScenarioOptions;
+    static std::unique_ptr<Scenario::Options> _previewScenarioOptions;
 
     static Ui::TextInput::InputSession inputSession;
 
@@ -362,18 +366,14 @@ namespace OpenLoco::Ui::Windows::PromptBrowse
         args.push(StringIds::empty);
         StringManager::formatString(folderBuffer, StringIds::window_browse_folder, args);
 
-        auto& drawingCtx = Gfx::getDrawingEngine().getDrawingContext();
-        auto tr = Gfx::TextRenderer(drawingCtx);
-
-        tr.setCurrentFont(Gfx::Font::medium_bold);
-        const auto folderLabelWidth = tr.getStringWidth(folderBuffer);
+        const auto folderLabelWidth = Gfx::TextRenderer::getStringWidth(Gfx::Font::medium_bold, folderBuffer);
 
         // We'll ensure the folder width does not reach the parent button.
         const uint16_t maxWidth = self.widgets[widx::parent_button].left - folderLabelWidth - 10;
         auto nameBuffer = _currentDirectory.u8string();
         nameBuffer = Localisation::convertUnicodeToLoco(nameBuffer);
         strncpy(&_displayFolderBuffer[0], nameBuffer.c_str(), 512);
-        uint16_t folderWidth = tr.getStringWidth(_displayFolderBuffer);
+        uint16_t folderWidth = Gfx::TextRenderer::getStringWidth(Gfx::Font::medium_bold, _displayFolderBuffer);
 
         // If the folder already fits, we're done.
         if (folderWidth <= maxWidth)
@@ -401,7 +401,7 @@ namespace OpenLoco::Ui::Windows::PromptBrowse
 
             // Prepare for the next pass, if needed.
             relativeDirectory++;
-        } while (tr.getStringWidth(_displayFolderBuffer) > maxWidth);
+        } while (Gfx::TextRenderer::getStringWidth(Gfx::Font::medium_bold, _displayFolderBuffer) > maxWidth);
     }
 
     static FormatArguments getStringPtrFormatArgs(const char* buffer)

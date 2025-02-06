@@ -9,6 +9,7 @@
 #include "Ui.h"
 #include "Ui/Widget.h"
 #include "Ui/Widgets/ButtonWidget.h"
+#include "Ui/Widgets/CaptionWidget.h"
 #include "Ui/Widgets/LabelWidget.h"
 #include "Ui/Widgets/PanelWidget.h"
 #include "Ui/WindowManager.h"
@@ -36,7 +37,7 @@ namespace OpenLoco::Ui::Windows::PromptSaveWindow
 
     static constexpr auto _widgets = makeWidgets(
         Widgets::Panel({ 0, 0 }, { 260, 48 }, WindowColour::primary),
-        makeWidget({ 1, 1 }, { 258, 13 }, WidgetType::caption_22, WindowColour::primary, StringIds::empty),
+        Widgets::Caption({ 1, 1 }, { 258, 13 }, CaptionVariant::boxed, WindowColour::primary, StringIds::empty),
         Widgets::Button({ 247, 2 }, { 11, 11 }, WindowColour::primary, StringIds::close_window_cross, StringIds::tooltip_close_window),
         Widgets::Label({ 2, 17 }, { 256, 12 }, WindowColour::primary, ContentAlign::Center, StringIds::empty),
         Widgets::Button({ 8, 33 }, { 78, 12 }, WindowColour::primary, StringIds::label_button_save),
@@ -70,14 +71,14 @@ namespace OpenLoco::Ui::Windows::PromptSaveWindow
             window->setColour(WindowColour::primary, AdvancedColour(Colour::mutedDarkRed).translucent());
             window->flags |= Ui::WindowFlags::transparent;
 
-            setPauseFlag(1 << 1);
+            SceneManager::setPauseFlag(1 << 1);
             Audio::pauseSound();
             WindowManager::invalidate(WindowType::timeToolbar);
         }
 
         _savePromptType = savePromptType;
 
-        if (!isEditorMode())
+        if (!SceneManager::isEditorMode())
         {
             static constexpr std::array<const StringId, 3> kTypeToType = {
                 StringIds::title_load_game,
@@ -150,7 +151,7 @@ namespace OpenLoco::Ui::Windows::PromptSaveWindow
     // 0x0043C577
     static void onClose([[maybe_unused]] Window& self)
     {
-        unsetPauseFlag(2);
+        SceneManager::unsetPauseFlag(2);
         Audio::unpauseSound();
         WindowManager::invalidate(WindowType::timeToolbar);
     }

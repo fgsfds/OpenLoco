@@ -1,5 +1,21 @@
+25.01+ (???)
+------------------------------------------------------------------------
+- Fix: [#2864] News messages are drawn incorrectly.
+- Fix: [#2866] Vehicles lengths with 0 in the tenths place being displayed incorrectly.
+
+25.01 (2025-01-30)
+------------------------------------------------------------------------
+- Feature: [#2859] Add Class 656 OpenGraphics vehicle.
+- Fix: [#2613] Crash when unpacking objects from a save file.
+- Fix: [#2805] Inflation calculation potentially going wrong with large values.
+- Fix: [#2810] Large performance regression when there are a lot of vehicles.
+- Fix: [#2818] Incorrect bridge segment shown on some rotations.
+- Fix: [#2829] Large performance regression when using a window scale factor of 1.0.
+- Fix: [#2836] Stations with glass draw incorrectly when there are cantenary wires.
+
 24.12 (2024-12-27)
 ------------------------------------------------------------------------
+- Feature: [#2816] Add Swedish localisation.
 - Fix: [#2667] Music stops working when only one track is selected or available.
 - Fix: [#2761] Potential crash when the Locomotion game folder is changed.
 - Fix: [#2776, #2777] Bridge support image ordering incorrect and invisible bridge platforms over buildings.

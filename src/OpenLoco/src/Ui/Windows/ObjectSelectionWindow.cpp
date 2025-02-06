@@ -3,6 +3,7 @@
 #include "Graphics/Colour.h"
 #include "Graphics/Gfx.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Graphics/TextRenderer.h"
 #include "Input.h"
@@ -46,9 +47,12 @@
 #include "Ui/TextInput.h"
 #include "Ui/Widget.h"
 #include "Ui/Widgets/ButtonWidget.h"
+#include "Ui/Widgets/CaptionWidget.h"
 #include "Ui/Widgets/FrameWidget.h"
 #include "Ui/Widgets/ImageButtonWidget.h"
 #include "Ui/Widgets/PanelWidget.h"
+#include "Ui/Widgets/TabWidget.h"
+#include "Ui/Widgets/TextBoxWidget.h"
 #include "Ui/Window.h"
 #include "Ui/WindowManager.h"
 #include "World/CompanyManager.h"
@@ -254,7 +258,7 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
 
     static constexpr auto widgets = makeWidgets(
         Widgets::Frame({ 0, 0 }, { 600, 398 }, WindowColour::primary),
-        makeWidget({ 1, 1 }, { 598, 13 }, WidgetType::caption_25, WindowColour::primary, StringIds::title_object_selection),
+        Widgets::Caption({ 1, 1 }, { 598, 13 }, CaptionVariant::whiteText, WindowColour::primary, StringIds::title_object_selection),
         Widgets::ImageButton({ 585, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
         Widgets::Panel({ 0, 42 }, { 600, 356 }, WindowColour::secondary),
 
@@ -263,18 +267,18 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
 
         // Filter options
         makeDropdownWidgets({ 492, 20 }, { 100, 12 }, WindowColour::primary, StringIds::empty),
-        makeWidget({ 4, 45 }, { 246, 14 }, WidgetType::textbox, WindowColour::secondary),
+        Widgets::TextBox({ 4, 45 }, { 246, 14 }, WindowColour::secondary),
         Widgets::Button({ 254, 45 }, { 38, 14 }, WindowColour::secondary, StringIds::clearInput),
 
         // Secondary tabs
-        makeWidget({ 3, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 34, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 65, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 96, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 127, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 158, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 189, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
-        makeWidget({ 220, 62 }, { 31, 27 }, WidgetType::none, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 3, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 34, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 65, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 96, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 127, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 158, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 189, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
+        Widgets::Tab({ 220, 62 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab),
 
         // Scroll and preview areas
         Widgets::Panel({ 3, 83 }, { 290, 303 }, WindowColour::secondary),
@@ -317,12 +321,12 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
             return false;
         }
 
-        if (isEditorMode() && (tabFlags & ObjectTabFlags::hideInEditor) != ObjectTabFlags::none)
+        if (SceneManager::isEditorMode() && (tabFlags & ObjectTabFlags::hideInEditor) != ObjectTabFlags::none)
         {
             return false;
         }
 
-        if (!isEditorMode() && (tabFlags & ObjectTabFlags::hideInGame) != ObjectTabFlags::none)
+        if (!SceneManager::isEditorMode() && (tabFlags & ObjectTabFlags::hideInGame) != ObjectTabFlags::none)
         {
             return false;
         }
@@ -489,7 +493,7 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
         window->initScrollWidgets();
         window->frameNo = 0;
         window->rowHover = -1;
-        window->filterLevel = enumValue(isEditorMode() ? FilterLevel::beginner : FilterLevel::advanced);
+        window->filterLevel = enumValue(SceneManager::isEditorMode() ? FilterLevel::beginner : FilterLevel::advanced);
         window->var_858 = enumValue(FilterFlags::vanilla | FilterFlags::openLoco | FilterFlags::custom);
         window->currentSecondaryTab = 0;
         window->object = nullptr;
@@ -536,7 +540,7 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
         self.activatedWidgets |= (1 << widx::objectImage);
         self.widgets[widx::closeButton].type = WidgetType::buttonWithImage;
 
-        if (isEditorMode())
+        if (SceneManager::isEditorMode())
         {
             self.widgets[widx::closeButton].type = WidgetType::none;
         }
@@ -1598,7 +1602,7 @@ namespace OpenLoco::Ui::Windows::ObjectSelectionWindow
         ObjectManager::reloadAll();
         ObjectManager::freeTemporaryObject();
 
-        if (!isEditorMode())
+        if (!SceneManager::isEditorMode())
         {
             // Make new selection available in-game.
             ObjectManager::updateYearly2();

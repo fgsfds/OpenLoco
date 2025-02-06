@@ -4,6 +4,7 @@
 #include "GameState.h"
 #include "Graphics/Colour.h"
 #include "Graphics/ImageIds.h"
+#include "Graphics/RenderTarget.h"
 #include "Graphics/SoftwareDrawingEngine.h"
 #include "Input.h"
 #include "Map/MapSelection.h"
@@ -1076,7 +1077,7 @@ namespace OpenLoco::Ui::Windows::Construction
         // 0x004CD454
         void sub_4CD454()
         {
-            if (isNetworkHost())
+            if (SceneManager::isNetworkHost())
             {
                 auto window = WindowManager::find(ToolManager::getToolWindowType(), ToolManager::getToolWindowNumber());
                 if (window != nullptr)
@@ -1122,7 +1123,7 @@ namespace OpenLoco::Ui::Windows::Construction
         void setDisabledWidgets(Window* self)
         {
             auto disabledWidgets = 0;
-            if (isEditorMode())
+            if (SceneManager::isEditorMode())
             {
                 disabledWidgets |= (1ULL << Common::widx::tab_station);
             }
@@ -1476,7 +1477,7 @@ namespace OpenLoco::Ui::Windows::Construction
                     {
                         if (&bridgeList[k] == &bridgeList[bridgeCount])
                         {
-                            _cState->bridgeList[bridgeCount] = i;
+                            bridgeList[bridgeCount] = i;
                             bridgeCount++;
                             break;
                         }
@@ -1488,9 +1489,9 @@ namespace OpenLoco::Ui::Windows::Construction
                 }
             }
 
-            _cState->bridgeList[bridgeCount] = 0xFF;
+            bridgeList[bridgeCount] = 0xFF;
 
-            sortList(_cState->bridgeList);
+            sortList(bridgeList);
         }
 
         // 0x004781C5, 0x004A693D

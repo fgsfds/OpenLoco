@@ -12,7 +12,7 @@
 #include "Objects/AirportObject.h"
 #include "Objects/LandObject.h"
 #include "Objects/ObjectManager.h"
-#include "S5/S5.h"
+#include "ScenarioOptions.h"
 #include "World/CompanyManager.h"
 #include "World/Industry.h"
 #include "World/StationManager.h"
@@ -86,7 +86,7 @@ namespace OpenLoco::GameCommands
     }
 
     // 0x004930E1
-    static uint32_t createBuilding(const World::TilePos2 pos, const int16_t baseHeight, const uint8_t rotation, const uint8_t variation, const uint8_t airportObjectId, std::set<World::Pos3, World::LessThanPos3>& removedBuildings, const uint8_t flags)
+    static uint32_t createBuilding(const World::TilePos2 pos, const int16_t baseHeight, const uint8_t rotation, const uint8_t variation, const uint8_t airportObjectId, World::TileClearance::RemovedBuildings& removedBuildings, const uint8_t flags)
     {
         auto* airportObj = ObjectManager::get<AirportObject>(airportObjectId);
 
@@ -236,7 +236,7 @@ namespace OpenLoco::GameCommands
                     World::TileManager::mapInvalidateTileFull(World::toWorldSpace(tilePos));
                 }
 
-                S5::getOptions().madeAnyChanges = 1;
+                Scenario::getOptions().madeAnyChanges = 1;
             }
         }
         return totalCost;
@@ -353,7 +353,8 @@ namespace OpenLoco::GameCommands
         }
 
         currency32_t totalCost = Economy::getInflationAdjustedCost(airportObj->buildCostFactor, airportObj->costIndex, 6);
-        std::set<World::Pos3, World::LessThanPos3> removedBuildings{};
+
+        World::TileClearance::RemovedBuildings removedBuildings{};
         for (auto& buildingPosition : airportObj->getBuildingPositions())
         {
             auto buildingTilePos = Math::Vector::rotate(World::TilePos2(buildingPosition.x, buildingPosition.y), args.rotation) + World::toTileSpace(args.pos);
