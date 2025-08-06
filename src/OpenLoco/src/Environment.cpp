@@ -58,6 +58,7 @@ namespace OpenLoco::Environment
             "C:/GOG Games/Locomotion",
             "C:/Program Files/Steam/steamapps/common/Locomotion",
             "C:/Program Files (x86)/Steam/steamapps/common/Locomotion",
+            "."
         };
 
         Logging::info("Searching for Locomotion install path...");
