@@ -39,8 +39,6 @@ namespace OpenLoco::GameCommands
     constexpr auto kNumVehicleComponentsInBase = 4;         // head unk_1 unk_2 tail
     constexpr auto kMaxNumVehicleComponentsInCar = kNumVehicleComponentsInCarComponent * kMaxNumCarComponentsInCar;
 
-    static loco_global<uint8_t, 0x009C68EE> _errorCompanyId;
-    static loco_global<const World::TileElement*, 0x009C68D0> _9C68D0;
     static loco_global<ColourScheme, 0x01136140> _1136140; // primary colour
     static loco_global<int32_t, 0x011360FC> _11360FC;
     static loco_global<VehicleHead*, 0x01136240> _backupVeh0;
@@ -293,12 +291,12 @@ namespace OpenLoco::GameCommands
 
         if (bodyNumber == 0 && vehObject.hasFlags(VehicleObjectFlags::jacobsBogieFront))
         {
-            newBody->var_38 |= Flags38::unk_3;
+            newBody->var_38 |= Flags38::jacobsBogieAvailable;
         }
 
         if (bodyNumber + 1 == vehObject.var_04 && vehObject.hasFlags(VehicleObjectFlags::jacobsBogieRear))
         {
-            newBody->var_38 |= Flags38::unk_3;
+            newBody->var_38 |= Flags38::jacobsBogieAvailable;
         }
 
         lastVeh->setNextCar(newBody->id); // same as create bogie
@@ -365,7 +363,7 @@ namespace OpenLoco::GameCommands
             return false;
         }
         lastVeh->setNextCar(train.tail->id);
-        head->sub_4B7CC3();
+        head->updateTrainProperties();
         return true;
     }
 
@@ -587,7 +585,7 @@ namespace OpenLoco::GameCommands
 
         createVehicleTail(head->id, lastVeh);
 
-        head->sub_4B7CC3();
+        head->updateTrainProperties();
         return { head };
     }
 

@@ -43,7 +43,7 @@ namespace OpenLoco::Vehicles
         unk_0 = 1U << 0,
         isReversed = 1U << 1,
         unk_2 = 1U << 2,
-        unk_3 = 1U << 3,
+        jacobsBogieAvailable = 1U << 3,
         isGhost = 1U << 4,
         fasterAroundCurves = 1U << 5,
     };
@@ -83,6 +83,23 @@ namespace OpenLoco::Vehicles
         flag1 = 1U << 1,
     };
     OPENLOCO_ENABLE_ENUM_OPERATORS(SoundFlags);
+
+    enum class UpdateVar1136114Flags : uint32_t
+    {
+        none = 0U,
+        unk_m00 = (1U << 0),
+        noRouteFound = (1U << 1),
+        crashed = (1U << 2),
+        unk_m03 = (1U << 3),
+        approachingGradeCrossing = (1U << 4),
+        unk_m15 = (1U << 15),
+    };
+    OPENLOCO_ENABLE_ENUM_OPERATORS(UpdateVar1136114Flags);
+
+    bool hasUpdateVar1136114Flags(UpdateVar1136114Flags flags);
+    void resetUpdateVar1136114Flags();
+    void setUpdateVar1136114Flags(UpdateVar1136114Flags flags);
+    void unsetUpdateVar1136114Flags(UpdateVar1136114Flags flags);
 
     enum class Status : uint8_t
     {
@@ -203,10 +220,22 @@ namespace OpenLoco::Vehicles
     static_assert(sizeof(TrackAndDirection) == 2);
 
     // TODO move to a different header
+    enum class SignalStateFlags : uint8_t
+    {
+        none = 0U,
+        occupied = 1U << 0,       // Signal occupied with a vehicle (can be one or two way)
+        blockedNoRoute = 1U << 1, // There is no route through the signal at any time (e.g. one way signal and we are going the wrong way)
+        occupiedOneWay = 1U << 2, // Signal occupied with a vehicle and signal is one way
+    };
+    OPENLOCO_ENABLE_ENUM_OPERATORS(SignalStateFlags);
+
     void setSignalState(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint8_t trackType, uint32_t flags);
-    uint8_t getSignalState(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint8_t trackType, uint32_t flags);
+    SignalStateFlags getSignalState(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint8_t trackType, uint32_t flags);
     void sub_4A2AD7(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
+    void setReverseSignalOccupiedInBlock(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
+    bool isBlockOccupied(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
     uint8_t sub_4A2A58(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
+    uint8_t sub_4A2A77(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
     struct ApplyTrackModsResult
     {
         currency32_t cost;
@@ -215,7 +244,9 @@ namespace OpenLoco::Vehicles
     };
     ApplyTrackModsResult applyTrackModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_TrackAndDirection trackAndDirection, CompanyId company, uint8_t trackType, uint8_t flags, World::Track::ModSection modSelection, uint8_t trackModObjIds);
     currency32_t removeTrackModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_TrackAndDirection trackAndDirection, CompanyId company, uint8_t trackType, uint8_t flags, World::Track::ModSection modSelection, uint8_t trackModObjIds);
+    void leaveLevelCrossing(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint16_t unk);
 
+    EntityId checkForCollisions(VehicleBogie& bogie, World::Pos3& loc);
     void playPickupSound(Vehicles::Vehicle2* veh2);
     void playPlacedownSound(const World::Pos3 pos);
 
@@ -299,7 +330,7 @@ namespace OpenLoco::Vehicles
         void setColourScheme(ColourScheme colourScheme);
         bool updateComponent();
         void explodeComponent();
-        void sub_4AA464();
+        void destroyTrain();
         uint8_t sub_47D959(const World::Pos3& loc, const TrackAndDirection::_RoadAndDirection trackAndDirection, const bool setOccupied);
         int32_t updateTrackMotion(int32_t unk1);
     };
@@ -332,6 +363,13 @@ namespace OpenLoco::Vehicles
     };
     static_assert(sizeof(VehicleCargo) == 0xA);
 
+    struct Sub4ACEE7Result
+    {
+        uint8_t status;
+        uint8_t flags;
+        StationId stationId;
+    };
+
     struct VehicleHead : VehicleBase
     {
         static constexpr auto kVehicleThingType = VehicleEntityType::head;
@@ -348,15 +386,15 @@ namespace OpenLoco::Vehicles
         Flags38 var_38;
         uint8_t pad_39;      // 0x39
         EntityId nextCarId;  // 0x3A
-        uint32_t var_3C;     // 0x3C
+        int32_t var_3C;      // 0x3C
         uint8_t pad_40[0x2]; // 0x40
         TransportMode mode;  // 0x42 field same in all vehicles
         uint8_t pad_43;
-        int16_t ordinalNumber;     // 0x44
-        uint32_t orderTableOffset; // 0x46 offset into Order Table
-        uint16_t currentOrder;     // 0x4A offset, combine with orderTableOffset
-        uint16_t sizeOfOrderTable; // 0x4C size of Order Table
-        uint32_t var_4E;           // 0x4E
+        int16_t ordinalNumber;            // 0x44
+        uint32_t orderTableOffset;        // 0x46 offset into Order Table
+        uint16_t currentOrder;            // 0x4A offset, combine with orderTableOffset
+        uint16_t sizeOfOrderTable;        // 0x4C size of Order Table
+        uint32_t trainAcceptedCargoTypes; // 0x4E
         uint8_t var_52;
         uint8_t var_53;                // 0x53 mods?
         StationId stationId;           // 0x54
@@ -394,7 +432,7 @@ namespace OpenLoco::Vehicles
         char* cargoLUTToString(CargoTotalArray& cargoTotals, char* buffer);
         bool canBeModified() const;
         void liftUpVehicle();
-        void sub_4B7CC3();
+        void updateTrainProperties();
         currency32_t calculateRunningCost() const;
         void sub_4AD778();
         void sub_4AD93A();
@@ -411,6 +449,7 @@ namespace OpenLoco::Vehicles
         }
         void movePlaneTo(const World::Pos3& newLoc, const uint8_t newYaw, const Pitch newPitch);
         void moveBoatTo(const World::Pos3& loc, const uint8_t yaw, const Pitch pitch);
+        Sub4ACEE7Result sub_4ACEE7(uint32_t unk1, uint32_t var_113612C);
 
     private:
         void updateDrivingSounds();
@@ -421,7 +460,7 @@ namespace OpenLoco::Vehicles
         void updateGearboxMotorSound(VehicleSoundPlayer* soundPlayer, const VehicleGearboxMotorSound* snd);
         bool updateLand();
         bool sub_4A8DB7();
-        bool sub_4A8F22();
+        bool tryReverse();
         bool sub_4A8CB6();
         bool sub_4A8C81();
         bool landTryBeginUnloading();
@@ -458,12 +497,10 @@ namespace OpenLoco::Vehicles
         void produceLeavingDockSound();
         void produceTouchdownAirportSound();
         uint8_t sub_4AA36A();
-        std::tuple<uint8_t, uint8_t, StationId> sub_4ACEE7(uint32_t unk1, uint32_t var_113612C);
         bool sub_4AC1C2();
         bool opposingTrainAtSignal();
-        bool sub_4ACCDC();
+        bool pathingShouldReverse();
         StationId manualFindTrainStationAtLocation();
-        bool sub_4BADE4();
         bool isOnExpectedRoadOrTrack();
         VehicleStatus getStatusTravelling() const;
         void getSecondStatus(VehicleStatus& vehStatus) const;
@@ -603,7 +640,9 @@ namespace OpenLoco::Vehicles
         uint32_t var_5A;
         uint8_t wheelSlipping;         // 0x5E timeout that counts up
         BreakdownFlags breakdownFlags; // 0x5F
-        uint8_t pad_60[0x6A - 0x60];
+        uint16_t pad_60;               // 0x60
+        uint32_t refundCost;           // 0x62
+        uint8_t pad_66[0x6A - 0x66];
         uint8_t breakdownTimeout; // 0x6A (likely unused)
 
         const VehicleObject* getObject() const;
@@ -616,10 +655,10 @@ namespace OpenLoco::Vehicles
         {
             return (breakdownFlags & flagsToTest) != BreakdownFlags::none;
         }
+        void sub_4AC255(VehicleBogie* backBogie, VehicleBogie* frontBogie);
 
     private:
         void animationUpdate();
-        void sub_4AC255(VehicleBogie* backBogie, VehicleBogie* frontBogie);
         void steamPuffsAnimationUpdate(uint8_t num, int32_t var_05);
         void dieselExhaust1AnimationUpdate(uint8_t num, int32_t var_05);
         void dieselExhaust2AnimationUpdate(uint8_t num, int32_t var_05);
@@ -660,8 +699,8 @@ namespace OpenLoco::Vehicles
         uint8_t animationIndex;      // 0x46 animation index
         uint8_t var_47;              // 0x47 cargo sprite index (unused)
         VehicleCargo secondaryCargo; // 0x48 Note back bogie cannot carry cargo always check type
-        uint16_t var_52;
-        uint8_t bodyIndex; // 0x54
+        uint16_t totalCarWeight;     // 0x52 only valid for first bogie of car
+        uint8_t bodyIndex;           // 0x54
         uint8_t pad_55;
         uint32_t creationDay; // 0x56
         uint32_t var_5A;
@@ -685,7 +724,6 @@ namespace OpenLoco::Vehicles
         }
 
     private:
-        bool sub_4AA959(World::Pos3& pos);
         void updateRoll();
         void collision();
     };
@@ -724,6 +762,8 @@ namespace OpenLoco::Vehicles
         bool update();
     };
     static_assert(sizeof(VehicleTail) == 0x51); // Can't use offset_of change this to last field if more found
+
+    void liftUpTail(VehicleTail& tail);
 
 #pragma pack(pop)
 
@@ -974,6 +1014,8 @@ namespace OpenLoco::Vehicles
     uint32_t getNumUnitsForCargo(uint32_t maxPrimaryCargo, uint8_t primaryCargoId, uint8_t newCargoId);
     void removeAllCargo(CarComponent& carComponent);
 
+    struct VehicleCommon;
+
     /* flipCar
      * Reverses a Car in-place and returns the new front bogie
      * frontBogie: front bogie of the Car
@@ -990,6 +1032,8 @@ namespace OpenLoco::Vehicles
      */
     void insertCarBefore(VehicleBogie& source, VehicleBase& dest);
     void registerHooks();
+    void registerHeadHooks();
 
     bool canVehiclesCouple(const uint16_t newVehicleTypeId, const uint16_t sourceVehicleTypeId);
+    void connectJacobsBogies(VehicleHead& head);
 }

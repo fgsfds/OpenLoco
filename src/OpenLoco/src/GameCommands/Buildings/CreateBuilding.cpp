@@ -53,9 +53,10 @@ namespace OpenLoco::GameCommands
         // This is identical to createIndustry but with a BuildingObject
         // TODO: look into making some sort of common version
         auto clearHeight = 0;
+        const auto partHeights = buildingObj->getBuildingPartHeights();
         for (auto part : buildingObj->getBuildingParts(args.variation))
         {
-            clearHeight += buildingObj->partHeights[part];
+            clearHeight += partHeights[part];
         }
         if (!args.buildImmediately && buildingObj->scaffoldingSegmentType != 0xFF)
         {
@@ -124,7 +125,7 @@ namespace OpenLoco::GameCommands
                             // even if a clear could succeed here. This is
                             // because if it did place a ghost the ghost cleanup
                             // function might remove the wrong building!
-                            if (flags & Flags::flag_1)
+                            if (flags & Flags::preventBuildingClearing)
                             {
                                 return World::TileClearance::ClearFuncResult::collision;
                             }
@@ -248,9 +249,10 @@ namespace OpenLoco::GameCommands
                 elBuilding->setIsMiscBuilding(buildingObj->hasFlags(BuildingObjectFlags::miscBuilding));
 
                 bool hasFrames = false;
+                const auto partAnimations = buildingObj->getBuildingPartAnimations();
                 for (auto part : buildingObj->getBuildingParts(args.variation))
                 {
-                    if (buildingObj->partAnimations[part].numFrames > 1)
+                    if (partAnimations[part].numFrames > 1)
                     {
                         hasFrames = true;
                     }

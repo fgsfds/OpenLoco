@@ -17,6 +17,7 @@
 #include "Graphics/TextRenderer.h"
 #include "HillShapesObject.h"
 #include "IndustryObject.h"
+#include "Input.h"
 #include "InterfaceSkinObject.h"
 #include "LandObject.h"
 #include "LevelCrossingObject.h"
@@ -93,8 +94,6 @@ namespace OpenLoco::ObjectManager
 
     loco_global<ObjectRepositoryItem[kMaxObjectTypes], 0x4FE0B8> _objectRepository;
 
-    static loco_global<std::byte*, 0x0050D158> _dependentObjectsVector;
-    static loco_global<std::byte[0x2002], 0x0112A17F> _dependentObjectVectorData;
     static loco_global<bool, 0x0050D161> _isPartialLoaded;
     static loco_global<uint8_t, 0x0050D160> _isTemporaryObject; // 0xFF or 0
     static loco_global<Object*, 0x0050D15C> _temporaryObject;
@@ -539,7 +538,7 @@ namespace OpenLoco::ObjectManager
         _objectRepository[enumValue(preLoadObj->header.getType())].objects[id] = preLoadObj->object;
         auto& extendedHeader = _objectRepository[enumValue(preLoadObj->header.getType())].objectEntryExtendeds[id];
         extendedHeader = ObjectEntry2{
-            preLoadObj->header, preLoadObj->objectData.size()
+            preLoadObj->header, static_cast<uint32_t>(preLoadObj->objectData.size())
         };
 
         if (!*_isPartialLoaded)
@@ -648,7 +647,7 @@ namespace OpenLoco::ObjectManager
 
         auto* obj = reinterpret_cast<Object*>(objectData.data());
         getRepositoryItem(type).objects[index] = obj;
-        getRepositoryItem(type).objectEntryExtendeds[index] = ObjectEntry2(header, objectData.size());
+        getRepositoryItem(type).objectEntryExtendeds[index] = ObjectEntry2(header, static_cast<uint32_t>(objectData.size()));
         return true;
     }
 
@@ -718,7 +717,7 @@ namespace OpenLoco::ObjectManager
         strcat(str, objectname.c_str());
         Ui::ProgressBar::begin(caption);
         Ui::ProgressBar::setProgress(50);
-        Ui::processMessagesMini();
+        Input::processMessagesMini();
 
         // Get new file path
         std::string filename = objectname;
@@ -933,6 +932,32 @@ namespace OpenLoco::ObjectManager
         }
     }
 
+    // 0x0047966E
+    // Set road object ID flags
+    void sub_47966E()
+    {
+        uint32_t roadObjectIdIsNotTram = 0;
+        uint32_t roadObjectIdIsFlag7 = 0;
+
+        for (size_t index = 0; index < ObjectManager::getMaxObjects(ObjectType::road); ++index)
+        {
+            auto roadObject = ObjectManager::get<RoadObject>(index);
+            if (roadObject != nullptr)
+            {
+                if (roadObject->hasFlags(RoadObjectFlags::unk_03))
+                {
+                    roadObjectIdIsNotTram |= (1u << index);
+                }
+                if (roadObject->hasFlags(RoadObjectFlags::unk_07))
+                {
+                    roadObjectIdIsFlag7 |= (1u << index);
+                }
+            }
+        }
+        getGameState().roadObjectIdIsNotTram = roadObjectIdIsNotTram;
+        getGameState().roadObjectIdIsFlag7 = roadObjectIdIsFlag7;
+    }
+
     // 0x004796A9
     void updateDefaultLevelCrossingType()
     {
@@ -1101,6 +1126,32 @@ namespace OpenLoco::ObjectManager
         call(0x0047D9F2);
         updateWaterPalette();
         resetDefaultLandObject();
+    }
+
+    // 0x0047AC05
+    // Initialise lastTrackTypeOption in game state
+    void sub_47AC05()
+    {
+        static_assert(ObjectManager::getMaxObjects(ObjectType::road) <= 128); // protect against possible int8_t overflow in the future
+        TownSize largestTownSize = TownSize::hamlet;
+        uint8_t lastIndex = 255;
+
+        for (size_t index = 0; index < ObjectManager::getMaxObjects(ObjectType::road); ++index)
+        {
+            auto roadObject = ObjectManager::get<RoadObject>(index);
+            if (roadObject != nullptr)
+            {
+                if (roadObject->hasFlags(RoadObjectFlags::unk_03) && !roadObject->hasFlags(RoadObjectFlags::isOneWay))
+                {
+                    if (largestTownSize <= roadObject->targetTownSize)
+                    {
+                        largestTownSize = roadObject->targetTownSize;
+                        lastIndex = static_cast<uint8_t>(index);
+                    }
+                }
+            }
+        }
+        getGameState().lastTrackTypeOption = lastIndex;
     }
 
     void registerHooks()

@@ -1017,12 +1017,6 @@ namespace OpenLoco::World::TileManager
 
     static bool update(TileElement& el, const World::Pos2& loc)
     {
-        registers regs;
-        regs.ax = loc.x;
-        regs.cx = loc.y;
-        regs.esi = X86Pointer(&el);
-        regs.bl = el.data()[0] & 0x3F;
-
         switch (el.type())
         {
             case ElementType::surface:
@@ -1036,8 +1030,10 @@ namespace OpenLoco::World::TileManager
                 return elBuilding.update(loc);
             }
             case ElementType::tree:
-                call(0x004BD52B, regs);
-                break;
+            {
+                auto& elTree = el.get<TreeElement>();
+                return updateTreeElement(elTree, loc);
+            }
             case ElementType::road:
             {
                 auto& elRoad = el.get<RoadElement>();
@@ -1053,7 +1049,7 @@ namespace OpenLoco::World::TileManager
             case ElementType::signal: break;
             case ElementType::wall: break;
         }
-        return regs.esi != 0;
+        return true;
     }
 
     // 0x00463ABA
@@ -1256,6 +1252,58 @@ namespace OpenLoco::World::TileManager
             surface.setSnowCoverage(0);
 
             Ui::ViewportManager::invalidate(pos, surface.baseHeight(), surface.baseHeight() + 32, ZoomLevel::eighth);
+        }
+    }
+
+    // 0x004795D1
+    void setLevelCrossingFlags(const World::Pos3 pos)
+    {
+        auto findLevelTrackAndRoad = [pos](auto&& trackFunction, auto&& roadFunction) {
+            auto tile = World::TileManager::get(pos);
+            for (auto& el : tile)
+            {
+                if (el.baseHeight() != pos.z)
+                {
+                    continue;
+                }
+                if (el.isAiAllocated())
+                {
+                    continue;
+                }
+                auto* elTrack = el.as<World::TrackElement>();
+                if (elTrack != nullptr)
+                {
+                    if (elTrack->trackId() == 0)
+                    {
+                        trackFunction(*elTrack);
+                    }
+                }
+                auto* elRoad = el.as<World::RoadElement>();
+                if (elRoad != nullptr)
+                {
+                    if (elRoad->roadId() == 0)
+                    {
+                        roadFunction(*elRoad);
+                    }
+                }
+            }
+        };
+
+        bool hasRoad = false;
+        bool hasTrack = false;
+        findLevelTrackAndRoad(
+            [&hasTrack](World::TrackElement& elTrack) { hasTrack |= elTrack.hasLevelCrossing(); },
+            [&hasRoad](World::RoadElement& elRoad) { hasRoad |= elRoad.hasLevelCrossing(); });
+
+        if (hasRoad ^ hasTrack)
+        {
+            findLevelTrackAndRoad(
+                [hasTrack](World::TrackElement& elTrack) { if (hasTrack) { elTrack.setHasLevelCrossing(false); } },
+                [hasRoad](World::RoadElement& elRoad) { if (hasRoad) {
+                    elRoad.setHasLevelCrossing(false);
+                    elRoad.setUnk7_10(false);
+                    elRoad.setLevelCrossingObjectId(0);
+                } });
         }
     }
 

@@ -971,7 +971,7 @@ namespace OpenLoco::Ui::Windows::CompanyWindow
         static void placeHeadquarterGhost(const GameCommands::HeadquarterPlacementArgs& args)
         {
             removeHeadquarterGhost();
-            auto flags = GameCommands::Flags::apply | GameCommands::Flags::flag_1 | GameCommands::Flags::noErrorWindow | GameCommands::Flags::noPayment | GameCommands::Flags::ghost;
+            auto flags = GameCommands::Flags::apply | GameCommands::Flags::preventBuildingClearing | GameCommands::Flags::noErrorWindow | GameCommands::Flags::noPayment | GameCommands::Flags::ghost;
             if (GameCommands::doCommand(args, flags) != GameCommands::FAILURE)
             {
                 _headquarterGhostPlaced = true;
@@ -1074,7 +1074,7 @@ namespace OpenLoco::Ui::Windows::CompanyWindow
             }
 
             GameCommands::setErrorTitle(StringIds::error_cant_build_this_here);
-            uint8_t flags = GameCommands::Flags::apply | GameCommands::Flags::flag_1;
+            uint8_t flags = GameCommands::Flags::apply | GameCommands::Flags::preventBuildingClearing;
             auto commandResult = GameCommands::doCommand(*placementArgs, flags);
             if (commandResult != GameCommands::FAILURE)
             {
@@ -1872,7 +1872,7 @@ namespace OpenLoco::Ui::Windows::CompanyWindow
                 {
                     cashFormat = StringIds::cash_bankrupt;
                 }
-                if (company->cash.var_04 < 0)
+                else if (company->cash.var_04 < 0)
                 {
                     cashFormat = StringIds::cash_negative;
                 }
@@ -2127,7 +2127,7 @@ namespace OpenLoco::Ui::Windows::CompanyWindow
             auto widgetWidth = widget.width() - 2;
             if (self.scrollAreas[0].hasFlags(ScrollFlags::vscrollbarVisible))
             {
-                widgetWidth -= ScrollView::barWidth;
+                widgetWidth -= ScrollView::kScrollbarSize;
             }
             // This gets the offset of the last full page (widgetWidth) of the scroll view
             const auto newOffset = std::max(0, self.scrollAreas[0].contentWidth - widgetWidth);
@@ -2147,10 +2147,10 @@ namespace OpenLoco::Ui::Windows::CompanyWindow
         }
 
         // 0x0043386F
-        static void getScrollSize(Window& self, [[maybe_unused]] uint32_t scrollIndex, uint16_t* scrollWidth, [[maybe_unused]] uint16_t* scrollHeight)
+        static void getScrollSize(Window& self, [[maybe_unused]] uint32_t scrollIndex, int32_t& scrollWidth, [[maybe_unused]] int32_t& scrollHeight)
         {
             const auto& company = CompanyManager::get(CompanyId(self.number));
-            *scrollWidth = company->numExpenditureYears * expenditureColumnWidth;
+            scrollWidth = company->numExpenditureYears * expenditureColumnWidth;
         }
 
         // 0x00433887

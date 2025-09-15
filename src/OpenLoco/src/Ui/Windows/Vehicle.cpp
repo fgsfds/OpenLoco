@@ -1379,9 +1379,9 @@ namespace OpenLoco::Ui::Windows::Vehicle
         }
 
         // 0x4B38FA
-        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] uint16_t* const width, uint16_t* const height)
+        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] int32_t& scrollWidth, int32_t& scrollHeight)
         {
-            *height = static_cast<uint16_t>(Common::getNumCars(self) * self.rowHeight);
+            scrollHeight = Common::getNumCars(self) * self.rowHeight;
         }
 
         // 0x004B3B54
@@ -2467,9 +2467,9 @@ namespace OpenLoco::Ui::Windows::Vehicle
         }
 
         // 0x004B4360
-        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] uint16_t* const width, uint16_t* const height)
+        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] int32_t& scrollWidth, int32_t& scrollHeight)
         {
-            *height = static_cast<uint16_t>(Common::getNumCars(self) * self.rowHeight);
+            scrollHeight = Common::getNumCars(self) * self.rowHeight;
         }
 
         static char* generateCargoTooltipDetails(char* buffer, const StringId cargoFormat, const uint8_t cargoType, const uint8_t maxCargo, const uint32_t acceptedCargoTypes)
@@ -3052,7 +3052,7 @@ namespace OpenLoco::Ui::Windows::Vehicle
             auto index = 0;
             for (uint16_t cargoId = 0; cargoId < ObjectManager::getMaxObjects(ObjectType::cargo); ++cargoId)
             {
-                if (!(head->var_4E & (1 << cargoId)))
+                if (!(head->trainAcceptedCargoTypes & (1 << cargoId)))
                 {
                     continue;
                 }
@@ -3333,7 +3333,9 @@ namespace OpenLoco::Ui::Windows::Vehicle
                 {
                     if (!elStation->isAiAllocated() && !elStation->isGhost())
                     {
-                        return trainStationAdjustedInteraction(head, orderTableIndex, { interaction.pos, reinterpret_cast<uint32_t>(elStation), interaction.type, interaction.modId });
+                        ViewportInteraction::InteractionArg arg{ interaction.pos, 0, interaction.type, interaction.modId };
+                        arg.object = elStation;
+                        return trainStationAdjustedInteraction(head, orderTableIndex, arg);
                     }
                 }
             }
@@ -3559,7 +3561,7 @@ namespace OpenLoco::Ui::Windows::Vehicle
         }
 
         // 0x004B4D9B
-        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] uint16_t* const width, uint16_t* const height)
+        static void getScrollSize(Ui::Window& self, [[maybe_unused]] const uint32_t scrollIndex, [[maybe_unused]] int32_t& scrollWidth, int32_t& scrollHeight)
         {
             auto head = Common::getVehicle(self);
             if (head == nullptr)
@@ -3567,10 +3569,10 @@ namespace OpenLoco::Ui::Windows::Vehicle
                 return;
             }
             auto table = getOrderTable(head);
-            *height = lineHeight * std::distance(table.begin(), table.end());
+            scrollHeight = lineHeight * std::distance(table.begin(), table.end());
 
             // Space for the 'end of orders' item
-            *height += lineHeight;
+            scrollHeight += lineHeight;
         }
 
         static void scrollMouseDown(Window& self, [[maybe_unused]] const int16_t x, const int16_t y, [[maybe_unused]] const uint8_t scrollIndex)
@@ -3757,7 +3759,7 @@ namespace OpenLoco::Ui::Windows::Vehicle
             {
                 self.disabledWidgets &= ~((1 << widx::orderSkip) | (1 << widx::orderDelete));
             }
-            if (head->var_4E != 0)
+            if (head->trainAcceptedCargoTypes != 0)
             {
                 self.disabledWidgets &= ~((1 << widx::orderWait) | (1 << widx::orderForceUnload));
             }
@@ -4337,12 +4339,14 @@ namespace OpenLoco::Ui::Windows::Vehicle
             placementArgs.stationId = elStation->stationId();
             placementArgs.head = head.id;
             auto* airportObj = ObjectManager::get<AirportObject>(elStation->objectId());
+            const auto movementNodes = airportObj->getMovementNodes();
 
             int32_t bestDistance = std::numeric_limits<int32_t>::max();
             uint8_t bestNode = 0;
+            // TODO: Use std::ranges::reverse_view
             for (auto node = airportObj->numMovementNodes - 1; node > -1; node--)
             {
-                const auto& movementNode = airportObj->movementNodes[node];
+                const auto& movementNode = movementNodes[node];
                 if (!movementNode.hasFlags(AirportMovementNodeFlags::terminal))
                 {
                     continue;

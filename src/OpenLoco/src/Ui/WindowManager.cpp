@@ -1853,6 +1853,14 @@ namespace OpenLoco::Ui::WindowManager
      */
     void viewportShiftPixels(Ui::Window* window, Ui::Viewport* viewport, int16_t dX, int16_t dY)
     {
+        auto vpX = viewport->x;
+        auto vpY = viewport->y;
+        if (viewport->owner != nullptr)
+        {
+            vpX += viewport->owner->x;
+            vpY += viewport->owner->y;
+        }
+
         const auto index = indexOf(*window);
         for (auto it = _windows.begin() + index; it != _windows.end(); it++)
         {
@@ -1872,22 +1880,22 @@ namespace OpenLoco::Ui::WindowManager
                 continue;
             }
 
-            if (viewport->x + viewport->width <= w.x)
+            if (vpX + viewport->width <= w.x)
             {
                 continue;
             }
 
-            if (w.x + w.width <= viewport->x)
+            if (w.x + w.width <= vpX)
             {
                 continue;
             }
 
-            if (viewport->y + viewport->height <= w.y)
+            if (vpY + viewport->height <= w.y)
             {
                 continue;
             }
 
-            if (w.y + w.height <= viewport->y)
+            if (w.y + w.height <= vpY)
             {
                 continue;
             }
@@ -1900,25 +1908,25 @@ namespace OpenLoco::Ui::WindowManager
             bottom = w.y + w.height;
 
             // TODO: replace these with min/max
-            cx = viewport->x;
+            cx = vpX;
             if (left < cx)
             {
                 left = cx;
             }
 
-            cx = viewport->x + viewport->width;
+            cx = vpX + viewport->width;
             if (right > cx)
             {
                 right = cx;
             }
 
-            cx = viewport->y;
+            cx = vpY;
             if (top < cx)
             {
                 top = cx;
             }
 
-            cx = viewport->y + viewport->height;
+            cx = vpY + viewport->height;
             if (bottom > cx)
             {
                 bottom = cx;
@@ -1943,15 +1951,23 @@ namespace OpenLoco::Ui::WindowManager
      */
     void viewportRedrawAfterShift(Window* window, Viewport* viewport, int16_t x, int16_t y)
     {
+        auto vpX = viewport->x;
+        auto vpY = viewport->y;
+        if (viewport->owner != nullptr)
+        {
+            vpX += viewport->owner->x;
+            vpY += viewport->owner->y;
+        }
+
         while (window != nullptr)
         {
             // skip current window and non-intersecting windows
             if (viewport == window->viewports[0]
                 || viewport == window->viewports[1]
-                || viewport->x + viewport->width <= window->x
-                || viewport->x >= window->x + window->width
-                || viewport->y + viewport->height <= window->y
-                || viewport->y >= window->y + window->height)
+                || vpX + viewport->width <= window->x
+                || vpX >= window->x + window->width
+                || vpY + viewport->height <= window->y
+                || vpY >= window->y + window->height)
             {
                 size_t nextWindowIndex = WindowManager::indexOf(*window) + 1;
                 window = nextWindowIndex >= count() ? nullptr : WindowManager::get(nextWindowIndex);
@@ -1961,9 +1977,9 @@ namespace OpenLoco::Ui::WindowManager
             // save viewport
             Ui::Viewport viewCopy = *viewport;
 
-            if (viewport->x < window->x)
+            if (vpX < window->x)
             {
-                viewport->width = window->x - viewport->x;
+                viewport->width = window->x - vpX;
                 viewport->viewWidth = viewport->width << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
 
@@ -1973,9 +1989,9 @@ namespace OpenLoco::Ui::WindowManager
                 viewport->viewWidth = viewport->width << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
             }
-            else if (viewport->x + viewport->width > window->x + window->width)
+            else if (vpX + viewport->width > window->x + window->width)
             {
-                viewport->width = window->x + window->width - viewport->x;
+                viewport->width = window->x + window->width - vpX;
                 viewport->viewWidth = viewport->width << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
 
@@ -1985,9 +2001,9 @@ namespace OpenLoco::Ui::WindowManager
                 viewport->viewWidth = viewport->width << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
             }
-            else if (viewport->y < window->y)
+            else if (vpY < window->y)
             {
-                viewport->height = window->y - viewport->y;
+                viewport->height = window->y - vpY;
                 viewport->viewHeight = viewport->height << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
 
@@ -1997,9 +2013,9 @@ namespace OpenLoco::Ui::WindowManager
                 viewport->viewHeight = viewport->height << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
             }
-            else if (viewport->y + viewport->height > window->y + window->height)
+            else if (vpY + viewport->height > window->y + window->height)
             {
-                viewport->height = window->y + window->height - viewport->y;
+                viewport->height = window->y + window->height - vpY;
                 viewport->viewHeight = viewport->height << viewport->zoom;
                 viewportRedrawAfterShift(window, viewport, x, y);
 
@@ -2015,8 +2031,8 @@ namespace OpenLoco::Ui::WindowManager
             return;
         }
 
-        int16_t left = viewport->x;
-        int16_t top = viewport->y;
+        int16_t left = vpX;
+        int16_t top = vpY;
         int16_t right = left + viewport->width;
         int16_t bottom = top + viewport->height;
 

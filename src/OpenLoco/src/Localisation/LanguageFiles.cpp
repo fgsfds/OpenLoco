@@ -21,7 +21,6 @@ using namespace OpenLoco::Diagnostics;
 
 namespace OpenLoco::Localisation
 {
-    static loco_global<char* [0xFFFF], 0x005183FC> _strings;
     static std::vector<std::unique_ptr<char[]>> _stringsOwner;
 
     static const std::map<std::string, uint8_t, std::less<>> kBasicCommands = {
@@ -62,7 +61,7 @@ namespace OpenLoco::Localisation
         auto str = std::make_unique<char[]>(size + 1);
         char* out = str.get();
 
-        utf8_t* ptr = (utf8_t*)value;
+        const utf8_t* ptr = (utf8_t*)value;
         while (true)
         {
             utf32_t codepoint = readCodePoint(&ptr);
@@ -270,7 +269,7 @@ namespace OpenLoco::Localisation
 
                 if (processedString != nullptr)
                 {
-                    _strings[id] = processedString;
+                    StringManager::swapString(id, processedString);
                 }
             }
 

@@ -39,7 +39,6 @@
 #include "Ui/WindowManager.h"
 #include "Vehicles/Vehicle.h"
 #include "ViewportManager.h"
-#include "World/CompanyAi/CompanyAiPathfinding.h"
 #include "World/IndustryManager.h"
 #include "World/Station.h"
 #include "World/StationManager.h"
@@ -822,7 +821,6 @@ void OpenLoco::Interop::registerHooks()
     Config::registerHooks();
     ObjectManager::registerHooks();
     Vehicles::registerHooks();
-    CompanyAi::registerHooks();
 
     // Part of 0x004691FA
     registerHook(
@@ -933,11 +931,6 @@ void OpenLoco::Interop::registerHooks()
             regs = backup;
             return 0;
         });
-
-    // Remove check for is road in use when removing roads. It is
-    // quite annoying when it's sometimes only the player's own
-    // vehicles that are using it.
-    writeNop(0x004776DD, 6);
 
     registerHook(
         0x0047024A,

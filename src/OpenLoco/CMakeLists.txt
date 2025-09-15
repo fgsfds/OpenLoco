@@ -103,6 +103,7 @@ set(OLOCO_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Industries/RenameIndustry.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Road/CreateRoad.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Road/CreateRoadStation.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Road/RemoveRoad.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Road/RemoveRoadStation.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Terraform/ChangeLandMaterial.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/GameCommands/Terraform/ClearLand.cpp"
@@ -200,6 +201,7 @@ set(OLOCO_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Map/Track/Track.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Map/Track/TrackData.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Map/Tree.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/Map/TreeElement.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Map/WaveManager.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Message.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/MessageManager.cpp"
@@ -335,7 +337,6 @@ set(OLOCO_SOURCES
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/IndustryWindow.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/KeyboardShortcuts.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/LandscapeGeneration.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/LandscapeGenerationConfirm.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/Main.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/MapToolTip.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/Ui/Windows/MapWindow.cpp"
@@ -783,6 +784,7 @@ target_link_libraries(OpenLoco
     ${SDL2_LIB}
     Threads::Threads
     yaml-cpp
+    ZLIB::ZLIB # This shouldn't be required but vcpkg seems to not map the dependencies correctly for png static
     ${PNG_LIBRARY}
     ${OPENAL_LIBRARIES})
 
@@ -814,10 +816,6 @@ elseif (MSVC)
             _USE_MATH_DEFINES
             SDL_MAIN_HANDLED
             _WINSOCK_DEPRECATED_NO_WARNINGS)
-
-    target_link_libraries(OpenLoco
-        ZLIB::ZLIB) # This shouldn't be required but vcpkg seems to not map the dependencies correctly for png static
-
 else ()
     target_compile_definitions(OpenLoco
         PRIVATE
