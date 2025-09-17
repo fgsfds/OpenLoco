@@ -11,6 +11,7 @@
 #include "MessageManager.h"
 #include "Objects/AirportObject.h"
 #include "Objects/ObjectManager.h"
+#include "Objects/RoadObject.h"
 #include "RoutingManager.h"
 #include "Ui/WindowManager.h"
 #include "ViewportManager.h"
@@ -24,6 +25,7 @@ namespace OpenLoco::Vehicles
     static loco_global<uint8_t[128], 0x004F7358> _4F7358; // trackAndDirection without the direction 0x1FC
     static loco_global<UpdateVar1136114Flags, 0x01136114> _vehicleUpdate_var_1136114;
     static loco_global<EntityId, 0x0113610E> _vehicleUpdate_collisionCarComponent;
+    static constexpr int32_t kObjDistToHighPrecisionDistance = 2179;
 
 #pragma pack(push, 1)
     // There are some common elements in the vehicle components at various offsets these can be accessed via VehicleBase
@@ -570,6 +572,288 @@ namespace OpenLoco::Vehicles
             }
         }
         return result;
+    }
+
+    struct Sub47CEB7Result
+    {
+        uint8_t al;
+        uint8_t ah;
+    };
+
+    // 0x0047CEB7
+    // veh1 : esi
+    // return : al, ah
+    static Sub47CEB7Result sub_47CEB7(Vehicle1& veh1)
+    {
+        const auto startPos = World::Pos3(veh1.tileX, veh1.tileY, veh1.tileBaseZ * World::kSmallZStep);
+        uint8_t unk112C327 = 0;
+
+        auto pos = startPos + World::TrackData::getUnkRoad(veh1.trackAndDirection.road._data & 0x7F).pos;
+        unk112C327++;
+
+        auto routings = RoutingManager::RingView(veh1.routingHandle);
+        auto routingIter = routings.begin();
+        if (routingIter == routings.end())
+        {
+            return Sub47CEB7Result{ 0, 0 };
+        }
+        routingIter++;
+        if (routingIter == routings.end())
+        {
+            return Sub47CEB7Result{ 0, 0 };
+        }
+        auto routing = RoutingManager::getRouting(*routingIter);
+        TrackAndDirection::_RoadAndDirection tad(0, 0);
+        tad._data = routing & World::Track::AdditionalTaDFlags::basicTaDMask;
+        const auto occupationFlags = getRoadOccupation(pos, tad);
+
+        if ((occupationFlags & RoadOccupationFlags::hasLevelCrossing) != RoadOccupationFlags::none)
+        {
+            // 0x0047D0B9
+            if ((occupationFlags & (RoadOccupationFlags::isLaneOccupied | RoadOccupationFlags::isLevelCrossingClosed)) != RoadOccupationFlags::none)
+            {
+                return Sub47CEB7Result{ 2, 0 };
+            }
+            ++unk112C327;
+            for (; unk112C327 < 255; ++unk112C327)
+            {
+                pos += World::TrackData::getUnkRoad(tad._data & 0x7F).pos;
+                routingIter++;
+                if (routingIter == routings.end())
+                {
+                    return Sub47CEB7Result{ 2, 0 };
+                }
+                tad._data = RoutingManager::getRouting(*routingIter) & World::Track::AdditionalTaDFlags::basicTaDMask;
+
+                const auto fwdOccupationFlags = getRoadOccupation(pos, tad);
+                if ((fwdOccupationFlags & (RoadOccupationFlags::isLaneOccupied | RoadOccupationFlags::isLevelCrossingClosed)) != RoadOccupationFlags::none)
+                {
+                    return Sub47CEB7Result{ 2, 0 };
+                }
+                if ((fwdOccupationFlags & RoadOccupationFlags::hasLevelCrossing) == RoadOccupationFlags::none)
+                {
+                    return Sub47CEB7Result{ 4, unk112C327 };
+                }
+            }
+            return Sub47CEB7Result{ 2, 0 };
+        }
+        else
+        {
+            OvertakeResult overtakeResult = OvertakeResult::overtakeAvailble;
+            if ((occupationFlags & RoadOccupationFlags::isLaneOccupied) != RoadOccupationFlags::none)
+            {
+                overtakeResult = getRoadOvertakeAvailability(veh1, pos, tad._data);
+                if (overtakeResult == OvertakeResult::mayBeOvertaken)
+                {
+                    return Sub47CEB7Result{ 0, 0 };
+                }
+            }
+            else
+            {
+                // 0x0047CF32
+                auto nextRoutingIter = routingIter;
+                nextRoutingIter++;
+                const auto nextPos = pos + World::TrackData::getUnkRoad(tad._data & 0x7F).pos;
+                if (nextRoutingIter == routings.end())
+                {
+                    return Sub47CEB7Result{ 0, 0 };
+                }
+                auto nextRouting = RoutingManager::getRouting(*nextRoutingIter);
+                TrackAndDirection::_RoadAndDirection nextTad(0, 0);
+                nextTad._data = nextRouting & World::Track::AdditionalTaDFlags::basicTaDMask;
+                const auto nextOccupationFlags = getRoadOccupation(nextPos, nextTad);
+                if ((nextOccupationFlags & RoadOccupationFlags::isLaneOccupied) == RoadOccupationFlags::none)
+                {
+                    return Sub47CEB7Result{ 0, 0 };
+                }
+                overtakeResult = getRoadOvertakeAvailability(veh1, nextPos, nextTad._data);
+                if (overtakeResult == OvertakeResult::mayBeOvertaken)
+                {
+                    return Sub47CEB7Result{ 0, 0 };
+                }
+            }
+            // 0x0047CFB5
+            const auto& roadObj = ObjectManager::get<RoadObject>(veh1.trackType);
+            if (!roadObj->hasFlags(RoadObjectFlags::isRoad))
+            {
+                return Sub47CEB7Result{ 0, 0 };
+            }
+            if (tad.isUnk8() || tad.isBackToFront())
+            {
+                return Sub47CEB7Result{ 0, 0 };
+            }
+            auto backToFrontTad = tad;
+            backToFrontTad._data ^= (1U << 7);
+            auto btfOccupationFlags = getRoadOccupation(pos, backToFrontTad);
+            if ((btfOccupationFlags & (RoadOccupationFlags::hasLevelCrossing | RoadOccupationFlags::isLaneOccupied)) != RoadOccupationFlags::none)
+            {
+                return Sub47CEB7Result{ 0, 0 };
+            }
+            const auto unkCount = overtakeResult == OvertakeResult::overtakeAvailble ? 5 : 0;
+            ++unk112C327;
+            auto i = 0;
+            for (; unk112C327 < 11; ++unk112C327)
+            {
+                pos += World::TrackData::getUnkRoad(tad._data & 0x7F).pos;
+                routingIter++;
+                if (routingIter == routings.end())
+                {
+                    if ((btfOccupationFlags & RoadOccupationFlags::hasStation) == RoadOccupationFlags::none)
+                    {
+                        return Sub47CEB7Result{ 0, 0 };
+                    }
+                    return Sub47CEB7Result{ 8, static_cast<uint8_t>(unk112C327 - 1) };
+                }
+                tad._data = RoutingManager::getRouting(*routingIter) & World::Track::AdditionalTaDFlags::basicTaDMask;
+
+                backToFrontTad = tad;
+                backToFrontTad._data ^= (1U << 7);
+                btfOccupationFlags = getRoadOccupation(pos, backToFrontTad);
+                if ((btfOccupationFlags & (RoadOccupationFlags::hasLevelCrossing | RoadOccupationFlags::isLaneOccupied)) != RoadOccupationFlags::none)
+                {
+                    return Sub47CEB7Result{ 0, 0 };
+                }
+                const auto fwdOccupationFlags = getRoadOccupation(pos, tad);
+                if ((fwdOccupationFlags & RoadOccupationFlags::isLaneOccupied) != RoadOccupationFlags::none)
+                {
+                    i = 0;
+                    continue;
+                }
+                i++;
+                if (i <= unkCount)
+                {
+                    continue;
+                }
+                return Sub47CEB7Result{ 1, unk112C327 };
+            }
+            return Sub47CEB7Result{ 0, 0 };
+        }
+    }
+
+    // 0x0047D308
+    static bool veh1UpdateRoadMotionNewRoadPiece(Vehicle1& veh1)
+    {
+        auto newRoutingHandle = veh1.routingHandle;
+        auto newIndex = newRoutingHandle.getIndex() + 1;
+        newRoutingHandle.setIndex(newIndex);
+        const auto routing = RoutingManager::getRouting(newRoutingHandle);
+        if (routing == RoutingManager::kAllocatedButFreeRoutingStation)
+        {
+            return false;
+        }
+
+        const auto newPos = World::Pos3(veh1.tileX, veh1.tileY, veh1.tileBaseZ * World::kSmallZStep)
+            + World::TrackData::getUnkRoad(veh1.trackAndDirection.road._data & 0x7F).pos;
+
+        TrackAndDirection::_RoadAndDirection newRad(0, 0);
+        newRad._data = routing & 0x1FFU;
+        veh1.sub_47D959(newPos, newRad, true);
+
+        veh1.routingHandle = newRoutingHandle;
+        veh1.trackAndDirection.road = newRad;
+
+        veh1.tileX = newPos.x;
+        veh1.tileY = newPos.y;
+        veh1.tileBaseZ = newPos.z / World::kSmallZStep;
+        return true;
+    }
+
+    // 0x0047D2D6
+    // veh1 : esi
+    // numRoadPieces : ah
+    // return eax
+    static int32_t vehicle1UpdateRoadMotionByPieces(Vehicle1& veh1, const uint8_t numRoadPieces)
+    {
+        auto intermediatePosition = veh1.position;
+        auto distanceMoved = 0;
+        for (auto i = 0; i < numRoadPieces;)
+        {
+            auto newSubPosition = veh1.subPosition + 1U;
+            const auto subPositionDataSize = World::TrackData::getRoadSubPositon(veh1.trackAndDirection.road._data).size();
+            // This means we have moved forward by a road piece
+            if (newSubPosition >= subPositionDataSize)
+            {
+                if (!veh1UpdateRoadMotionNewRoadPiece(veh1))
+                {
+                    // This seems wrong but its what vanilla does
+                    // Todo investigate if we should return 0 or actually move
+                    // the vehicle
+                    return distanceMoved;
+                }
+                else
+                {
+                    newSubPosition = 0;
+                    i++;
+                }
+            }
+            veh1.subPosition = newSubPosition;
+            const auto& moveData = World::TrackData::getRoadSubPositon(veh1.trackAndDirection.road._data)[newSubPosition];
+            const auto nextNewPosition = moveData.loc + World::Pos3(veh1.tileX, veh1.tileY, veh1.tileBaseZ * World::kSmallZStep);
+            distanceMoved += movementNibbleToDistance[getMovementNibble(intermediatePosition, nextNewPosition)];
+            intermediatePosition = nextNewPosition;
+            veh1.spriteYaw = moveData.yaw;
+            veh1.spritePitch = moveData.pitch;
+        }
+
+        veh1.moveTo(intermediatePosition);
+        return distanceMoved;
+    }
+
+    // 0x0047D1B4
+    // Similar to the others but doesn't update the vehicle
+    // due to that it must take reference to all the variables
+    static bool veh1UpdateRoadMotionNewRoadPieceNoMove(World::Pos3& pos, RoutingHandle& handle, TrackAndDirection::_RoadAndDirection& rad)
+    {
+        auto newIndex = handle.getIndex() + 1;
+        handle.setIndex(newIndex);
+        const auto routing = RoutingManager::getRouting(handle);
+        if (routing == RoutingManager::kAllocatedButFreeRoutingStation)
+        {
+            return false;
+        }
+
+        pos += World::TrackData::getUnkRoad(rad._data & 0x7F).pos;
+
+        rad._data = routing & 0x1FFU;
+        return true;
+    }
+
+    // 0x0047D142
+    // veh1 : esi
+    // numRoadPieces : ah
+    // return eax
+    static int32_t vehicle1UpdateRoadMotionByPiecesNoMove(Vehicle1& veh1, const uint8_t numRoadPieces)
+    {
+        auto intermediatePosition = veh1.position;
+        auto distanceMoved = 0;
+        auto pos = World::Pos3(veh1.tileX, veh1.tileY, veh1.tileBaseZ * World::kSmallZStep);
+        auto rad = veh1.trackAndDirection.road;
+        auto handle = veh1.routingHandle;
+        auto subPosition = veh1.subPosition;
+        for (auto i = 0; i < numRoadPieces;)
+        {
+            auto newSubPosition = subPosition + 1U;
+            const auto subPositionDataSize = World::TrackData::getRoadSubPositon(rad._data).size();
+            // This means we have moved forward by a road piece
+            if (newSubPosition >= subPositionDataSize)
+            {
+                if (!veh1UpdateRoadMotionNewRoadPieceNoMove(pos, handle, rad))
+                {
+                    return distanceMoved;
+                }
+                else
+                {
+                    newSubPosition = 0;
+                    i++;
+                }
+            }
+            subPosition = newSubPosition;
+            const auto& moveData = World::TrackData::getRoadSubPositon(rad._data)[newSubPosition];
+            const auto nextNewPosition = moveData.loc + pos;
+            distanceMoved += movementNibbleToDistance[getMovementNibble(intermediatePosition, nextNewPosition)];
+            intermediatePosition = nextNewPosition;
+        }
+        return distanceMoved;
     }
 
     // 0x0047C7FA
@@ -1123,6 +1407,78 @@ namespace OpenLoco::Vehicles
         }
     }
 
+    // 0x004B1C48
+    // Applies the vehicle object lengths to the bogies of the train
+    // with some specified starting distance. Bodies are not set as
+    // they are calculated later based on the positions of the bogies.
+    // returns the final distance
+    static int32_t applyVehicleObjectLengthToBogies(Vehicle& train, const int32_t startDistance)
+    {
+        auto distance = startDistance;
+        for (auto& car : train.cars)
+        {
+            const auto* vehicleObj = ObjectManager::get<VehicleObject>(car.front->objectId);
+            assert(std::distance(car.begin(), car.end()) == vehicleObj->var_04);
+            if (car.body->has38Flags(Flags38::isReversed))
+            {
+                auto objCarIndex = vehicleObj->var_04 - 1;
+                for (auto& component : car)
+                {
+                    auto& objCar = vehicleObj->carComponents[objCarIndex];
+                    const auto frontLength = objCar.backBogiePosition * -kObjDistToHighPrecisionDistance;
+                    component.front->remainingDistance = distance + frontLength;
+
+                    if (objCar.bodySpriteInd != 0xFFU)
+                    {
+                        const auto bodyLength = vehicleObj->bodySprites[objCar.bodySpriteInd & 0x7F].halfLength * -(kObjDistToHighPrecisionDistance * 2);
+                        distance += bodyLength;
+                    }
+                    const auto backLength = objCar.frontBogiePosition * kObjDistToHighPrecisionDistance;
+                    component.back->remainingDistance = distance + backLength;
+
+                    objCarIndex--;
+                }
+            }
+            else
+            {
+                auto objCarIndex = 0;
+                for (auto& component : car)
+                {
+                    auto& objCar = vehicleObj->carComponents[objCarIndex];
+                    const auto frontLength = objCar.frontBogiePosition * -kObjDistToHighPrecisionDistance;
+                    component.front->remainingDistance = distance + frontLength;
+
+                    if (objCar.bodySpriteInd != 0xFFU)
+                    {
+                        const auto bodyLength = vehicleObj->bodySprites[objCar.bodySpriteInd & 0x7F].halfLength * -(kObjDistToHighPrecisionDistance * 2);
+                        distance += bodyLength;
+                    }
+                    const auto backLength = objCar.backBogiePosition * kObjDistToHighPrecisionDistance;
+                    component.back->remainingDistance = distance + backLength;
+
+                    objCarIndex++;
+                }
+            }
+        }
+        return distance;
+    }
+
+    // 0x004AE2AB
+    // head: esi
+    static void applyVehicleObjectLength(Vehicle& train)
+    {
+        // We want the tail to have a remaining distance of 0
+        // so we first apply the lengths from 0 then take the return
+        // length and set that as the negative start offset and reapply
+
+        const auto negStartDistance = -applyVehicleObjectLengthToBogies(train, 0);
+        train.head->remainingDistance = negStartDistance;
+        train.veh1->remainingDistance = negStartDistance;
+        train.veh2->remainingDistance = negStartDistance;
+        applyVehicleObjectLengthToBogies(train, negStartDistance);
+        train.tail->remainingDistance = 0;
+    }
+
     void registerHooks()
     {
         registerHook(
@@ -1238,6 +1594,56 @@ namespace OpenLoco::Vehicles
 
                 regs = backup;
                 return res == OvertakeResult::mayBeOvertaken ? X86_FLAG_CARRY : 0;
+            });
+
+        registerHook(
+            0x0047CEB7,
+            [](registers& regs) FORCE_ALIGN_ARG_POINTER -> uint8_t {
+                registers backup = regs;
+
+                Vehicle1* veh1 = X86Pointer<Vehicle1>(regs.esi);
+
+                const auto res = sub_47CEB7(*veh1);
+
+                regs = backup;
+                regs.al = res.al;
+                regs.ah = res.ah;
+                return 0;
+            });
+
+        registerHook(
+            0x0047D2D6,
+            [](registers& regs) FORCE_ALIGN_ARG_POINTER -> uint8_t {
+                registers backup = regs;
+                Vehicle1* veh1 = X86Pointer<Vehicle1>(regs.esi);
+                const uint8_t numRoadPieces = regs.ah;
+                const auto res = vehicle1UpdateRoadMotionByPieces(*veh1, numRoadPieces);
+                regs = backup;
+                regs.eax = res;
+                return 0;
+            });
+
+        registerHook(
+            0x0047D142,
+            [](registers& regs) FORCE_ALIGN_ARG_POINTER -> uint8_t {
+                registers backup = regs;
+                Vehicle1* veh1 = X86Pointer<Vehicle1>(regs.esi);
+                const uint8_t numRoadPieces = regs.ah;
+                const auto res = vehicle1UpdateRoadMotionByPiecesNoMove(*veh1, numRoadPieces);
+                regs = backup;
+                regs.eax = res;
+                return 0;
+            });
+
+        registerHook(
+            0x004AE2AB,
+            [](registers& regs) FORCE_ALIGN_ARG_POINTER -> uint8_t {
+                registers backup = regs;
+                VehicleHead* head = X86Pointer<VehicleHead>(regs.esi);
+                Vehicle train(*head);
+                applyVehicleObjectLength(train);
+                regs = backup;
+                return 0;
             });
 
         registerHeadHooks();
