@@ -1,7 +1,9 @@
 25.08+ (???)
 ------------------------------------------------------------------------
 - Change: [#3227] The accuracy of cursor-relative zooming has been improved.
+- Change: [#3258] Current currency dropdown is now disabled when in the title screen.
 - Fix: [#3232] Crash when moving vehicle window when a message is showing a vehicle.
+- Fix: [#3256] Preferred currency not being loaded from config.
 
 25.08 (2025-08-26)
 ------------------------------------------------------------------------
