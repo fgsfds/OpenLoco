@@ -229,6 +229,49 @@ namespace OpenLoco::Vehicles
     };
     OPENLOCO_ENABLE_ENUM_OPERATORS(SignalStateFlags);
 
+    constexpr uint8_t getMovementNibble(const World::Pos3& pos1, const World::Pos3& pos2)
+    {
+        uint8_t nibble = 0;
+        if (pos1.x != pos2.x)
+        {
+            nibble |= (1U << 0);
+        }
+        if (pos1.y != pos2.y)
+        {
+            nibble |= (1U << 1);
+        }
+        if (pos1.z != pos2.z)
+        {
+            nibble |= (1U << 2);
+        }
+        return nibble;
+    }
+
+    // 0x00500120
+    constexpr std::array<uint32_t, 8> kMovementNibbleToDistance = {
+        0,
+        0x220C,
+        0x220C,
+        0x3027,
+        0x199A,
+        0x2A99,
+        0x2A99,
+        0x3689,
+    };
+
+    // 0x00500244
+    constexpr std::array<World::TilePos2, 9> kMooreNeighbourhood = {
+        World::TilePos2{ 0, 0 },
+        World::TilePos2{ 0, 1 },
+        World::TilePos2{ 1, 1 },
+        World::TilePos2{ 1, 0 },
+        World::TilePos2{ 1, -1 },
+        World::TilePos2{ 0, -1 },
+        World::TilePos2{ -1, -1 },
+        World::TilePos2{ -1, 0 },
+        World::TilePos2{ -1, 1 },
+    };
+
     void setSignalState(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint8_t trackType, uint32_t flags);
     SignalStateFlags getSignalState(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint8_t trackType, uint32_t flags);
     void sub_4A2AD7(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const CompanyId company, const uint8_t trackType);
@@ -244,6 +287,8 @@ namespace OpenLoco::Vehicles
     };
     ApplyTrackModsResult applyTrackModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_TrackAndDirection trackAndDirection, CompanyId company, uint8_t trackType, uint8_t flags, World::Track::ModSection modSelection, uint8_t trackModObjIds);
     currency32_t removeTrackModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_TrackAndDirection trackAndDirection, CompanyId company, uint8_t trackType, uint8_t flags, World::Track::ModSection modSelection, uint8_t trackModObjIds);
+    ApplyTrackModsResult applyRoadModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_RoadAndDirection roadAndDirection, CompanyId company, uint8_t roadType, uint8_t flags, World::Track::ModSection modSelection, uint8_t roadModObjIds);
+    currency32_t removeRoadModsToTrackNetwork(const World::Pos3& pos, Vehicles::TrackAndDirection::_RoadAndDirection roadAndDirection, CompanyId company, uint8_t roadType, uint8_t flags, World::Track::ModSection modSelection, uint8_t roadModObjIds);
     void leaveLevelCrossing(const World::Pos3& loc, const TrackAndDirection::_TrackAndDirection trackAndDirection, const uint16_t unk);
 
     enum class RoadOccupationFlags : uint8_t
