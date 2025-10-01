@@ -1,8 +1,10 @@
-25.08+ (???)
+25.09 (2025-09-30)
 ------------------------------------------------------------------------
 - Feature: [#3274] Add a button to rotate company headquarters when building them.
+- Feature: [#3284] Add tunnel, land, road station, streetlight, hill shape OpenGraphics objects.
 - Change: [#3227] The accuracy of cursor-relative zooming has been improved.
 - Change: [#3258] Current currency dropdown is now disabled when in the title screen.
+- Fix: [#3135] Follow vehicle on main view not working.
 - Fix: [#3232] Crash when moving vehicle window when a message is showing a vehicle.
 - Fix: [#3256] Preferred currency not being loaded from config.
 - Fix: [#3266] When text input reached the maximum length it can instead trigger shortcuts.
