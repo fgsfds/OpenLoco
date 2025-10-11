@@ -1,5 +1,12 @@
-25.09+ (???)
+25.10+ (???)
 ------------------------------------------------------------------------
+
+25.10 (2025-10-10)
+------------------------------------------------------------------------
+- Fix: [#2741] Tree, fence, and wall ghosts can be left behind when using Terraform keyboard shortcuts (original bug).
+- Fix: [#3238] Vehicle positioning hint is shown even when there is a viewport present.
+- Fix: [#3279] Game crashes when the news window slides into view.
+- Fix: [#3294] Wrong error message when attempting to remove the headquarters of another company.
 - Fix: [#3301] Assigning keyboard shortcuts not working correctly, the function parameters were swapped.
 
 25.09 (2025-09-30)
