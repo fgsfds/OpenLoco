@@ -56,7 +56,6 @@ namespace OpenLoco::S5
     static loco_global<GameState, 0x00525E18> _gameState;
     static loco_global<Options, 0x009C8714> _activeOptions;
     static loco_global<Header, 0x009CCA34> _header;
-    static loco_global<char[512], 0x0112CE04> _savePath;
     static loco_global<uint8_t, 0x0050C197> _loadErrorCode;
     static loco_global<StringId, 0x0050C198> _loadErrorMessage;
 
@@ -791,7 +790,7 @@ namespace OpenLoco::S5
             Audio::stopVehicleNoise();
             EntityManager::resetSpatialIndex();
             CompanyManager::updateColours();
-            ObjectManager::sub_4748FA();
+            ObjectManager::updateTerraformObjects();
             TileManager::resetSurfaceClearance();
             IndustryManager::createAllMapAnimations();
 
@@ -806,7 +805,7 @@ namespace OpenLoco::S5
                     auto header = ObjectManager::getHeader(LoadedObjectHandle{ ObjectType::scenarioText, 0 });
                     ObjectManager::unload(header);
                     ObjectManager::reloadAll();
-                    ObjectManager::sub_4748FA();
+                    ObjectManager::updateTerraformObjects();
                     _activeOptions->editorStep = enumValue(EditorController::Step::landscapeEditor);
                     _activeOptions->difficulty = 3;
                     StringManager::formatString(_activeOptions->scenarioDetails, StringIds::no_details_yet);

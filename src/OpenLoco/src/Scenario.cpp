@@ -54,8 +54,6 @@ using namespace OpenLoco::Literals;
 
 namespace OpenLoco::Scenario
 {
-    static loco_global<char[256], 0x0050B745> _currentScenarioFilename;
-
     // 0x0046115C
     void sub_46115C()
     {
@@ -225,12 +223,12 @@ namespace OpenLoco::Scenario
     // ?Set default types for building. Like the initial track type and vehicle type and such.?
     void sub_4748D4()
     {
-        ObjectManager::sub_47966E();
+        ObjectManager::updateRoadObjectIdFlags();
         ObjectManager::updateDefaultLevelCrossingType();
-        ObjectManager::sub_47AC05();
-        CompanyManager::sub_4A6DA9();
+        ObjectManager::updateLastTrackTypeOption();
+        CompanyManager::updatePlayerInfrastructureOptions();
         Gfx::invalidateScreen();
-        ObjectManager::sub_4748FA();
+        ObjectManager::updateTerraformObjects();
         Gfx::loadCurrency();
     }
 
@@ -277,7 +275,7 @@ namespace OpenLoco::Scenario
 
         CompanyManager::determineAvailableVehicles();
 
-        Economy::sub_46E2C0(getCurrentYear());
+        Economy::setInflationForYear(getCurrentYear());
     }
 
     // 0x00442837
@@ -295,8 +293,7 @@ namespace OpenLoco::Scenario
         }
 
         Audio::pauseSound();
-        static loco_global<char[512], 0x00112CE04> _scenarioFilename;
-        std::strncpy(&*_scenarioFilename, fullPath.u8string().c_str(), std::size(_scenarioFilename));
+
         auto result = S5::importSaveToGameState(fullPath, S5::LoadFlags::scenario);
         Audio::unpauseSound();
         return result;
@@ -351,7 +348,7 @@ namespace OpenLoco::Scenario
 
         auto savePath = Environment::getPath(Environment::PathId::save);
         savePath /= std::string(Scenario::getOptions().scenarioName) + S5::extensionSV5;
-        std::strncpy(_currentScenarioFilename, savePath.u8string().c_str(), std::size(_currentScenarioFilename));
+        Game::setActiveSavePath(savePath.u8string());
 
         loadPreferredCurrencyNewGame();
         Gfx::loadCurrency();
