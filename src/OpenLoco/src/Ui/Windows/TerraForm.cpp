@@ -26,6 +26,7 @@
 #include "Map/TileManager.h"
 #include "Map/Tree.h"
 #include "Map/TreeElement.h"
+#include "Map/WallElement.h"
 #include "Objects/InterfaceSkinObject.h"
 #include "Objects/LandObject.h"
 #include "Objects/ObjectManager.h"
@@ -106,9 +107,6 @@ namespace OpenLoco::Ui::Windows::Terraform
         };
         OPENLOCO_ENABLE_ENUM_OPERATORS(GhostPlacedFlags);
     }
-
-    // These are still referred to in CreateWall and S5
-    static loco_global<World::TileElement*, 0x01136470> _lastPlacedWall;
 
     static int16_t _adjustToolSize;                             // 0x0050A000
     static uint8_t _adjustLandToolSize;                         // 0x009C870E
@@ -806,7 +804,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                 args.push(treeObj->name);
 
                 auto point = Point(self.x + 3, self.y + self.height - 13);
-                auto width = self.width - 19 - point.x;
+                auto width = self.width - 19;
                 tr.drawStringLeftClipped(point, width, Colour::black, StringIds::black_stringid, args);
             }
         }
@@ -2470,7 +2468,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                 _terraformGhostRotation = placementArgs.rotation;
                 _terraformGhostTreeElementType = placementArgs.rotation; // Unsure why duplicated not used
                 _terraformGhostType = placementArgs.type;
-                _terraformGhostBaseZ = (*_lastPlacedWall)->baseZ();
+                _terraformGhostBaseZ = getLegacyReturnState().lastPlacedWall->baseZ();
                 _terraformGhostPlacedFlags |= Common::GhostPlacedFlags::wall;
             }
         }

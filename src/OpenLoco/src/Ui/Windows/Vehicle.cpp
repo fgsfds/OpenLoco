@@ -92,8 +92,6 @@ using OpenLoco::GameCommands::VehicleChangeRunningModeArgs;
 
 namespace OpenLoco::Ui::Windows::Vehicle
 {
-    static loco_global<StationId, 0x00F252A4> _hoveredStationId;
-
     namespace Common
     {
         enum widx
@@ -1135,7 +1133,6 @@ namespace OpenLoco::Ui::Windows::Vehicle
 
         static void cloneVehicle(Window& self)
         {
-            static loco_global<EntityId, 0x0113642A> _113642A;
             auto head = Common::getVehicle(self);
             if (head == nullptr)
             {
@@ -1149,7 +1146,7 @@ namespace OpenLoco::Ui::Windows::Vehicle
 
             if (GameCommands::doCommand(args, GameCommands::Flags::apply) != GameCommands::FAILURE)
             {
-                auto* newVehicle = EntityManager::get<Vehicles::VehicleBase>(_113642A);
+                auto* newVehicle = EntityManager::get<Vehicles::VehicleBase>(GameCommands::getLegacyReturnState().lastCreatedVehicleId);
                 if (newVehicle != nullptr)
                 {
                     Windows::Vehicle::Details::open(newVehicle);
@@ -3256,7 +3253,7 @@ namespace OpenLoco::Ui::Windows::Vehicle
                 return ViewportInteraction::kNoInteractionArg;
             }
 
-            _hoveredStationId = stationId;
+            Input::setHoveredStationId(stationId);
             World::setMapSelectionFlags(World::MapSelectionFlags::hoveringOverStation);
             ViewportManager::invalidate(station);
 
