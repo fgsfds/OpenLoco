@@ -47,22 +47,19 @@
 #include "World/IndustryManager.h"
 #include "World/StationManager.h"
 #include "World/TownManager.h"
-#include <OpenLoco/Interop/Interop.hpp>
+
 #include <OpenLoco/Math/Bound.hpp>
 #include <OpenLoco/Math/Trigonometry.hpp>
 #include <cassert>
 #include <numeric>
 #include <optional>
 
-using namespace OpenLoco::Interop;
 using namespace OpenLoco::Literals;
 using namespace OpenLoco::World;
 
 namespace OpenLoco::Vehicles
 {
-    static loco_global<int32_t, 0x0113612C> _vehicleUpdate_var_113612C; // Speed
-    static loco_global<int32_t, 0x01136130> _vehicleUpdate_var_1136130; // Speed
-    static loco_global<uint8_t, 0x0113623B> _vehicleMangled_113623B;    // This shouldn't be used as it will be mangled but it is
+    static uint8_t _vehicleMangled_113623B = 0; // 0x0113623B TODO: This shouldn't be used as it will be mangled but it is
 
     static constexpr uint16_t kTrainOneWaySignalTimeout = 1920;
     static constexpr uint16_t kTrainTwoWaySignalTimeout = 640;
@@ -183,8 +180,9 @@ namespace OpenLoco::Vehicles
         updateDrivingSounds();
 
         Vehicle2* veh2 = train.veh2;
-        _vehicleUpdate_var_113612C = veh2->currentSpeed.getRaw() >> 7;
-        _vehicleUpdate_var_1136130 = veh2->currentSpeed.getRaw() >> 7;
+        auto& distances = getVehicleUpdateDistances();
+        distances.unkDistance1 = veh2->currentSpeed.getRaw() >> 7;
+        distances.unkDistance2 = veh2->currentSpeed.getRaw() >> 7;
 
         if (var_5C != 0)
         {
@@ -307,7 +305,7 @@ namespace OpenLoco::Vehicles
                             GameCommands::VehicleChangeRunningModeArgs args{};
                             args.head = head;
                             args.mode = GameCommands::VehicleChangeRunningModeArgs::Mode::startVehicle;
-                            auto regs = static_cast<Interop::registers>(args);
+                            auto regs = static_cast<GameCommands::registers>(args);
                             regs.bl = GameCommands::Flags::apply;
                             GameCommands::vehicleChangeRunningMode(regs);
                             if (static_cast<uint32_t>(regs.ebx) == GameCommands::FAILURE)
@@ -1564,7 +1562,7 @@ namespace OpenLoco::Vehicles
     bool VehicleHead::landNormalMovementUpdate()
     {
         advanceToNextRoutableOrder();
-        auto [al, flags, nextStation] = sub_4ACEE7(0xD4CB00, _vehicleUpdate_var_113612C, false);
+        auto [al, flags, nextStation] = sub_4ACEE7(0xD4CB00, getVehicleUpdateDistances().unkDistance1, false);
 
         if (mode == TransportMode::road)
         {
@@ -1742,14 +1740,14 @@ namespace OpenLoco::Vehicles
 
         if (vehType2->currentSpeed >= 20.0_mph)
         {
-            _vehicleUpdate_var_1136130 = 0x4000;
+            getVehicleUpdateDistances().unkDistance2 = 0x4000;
         }
         else
         {
-            _vehicleUpdate_var_1136130 = 0x2000;
+            getVehicleUpdateDistances().unkDistance2 = 0x2000;
         }
 
-        train.cars.firstCar.body->sub_4AAB0B({});
+        train.cars.firstCar.body->sub_4AAB0B({}, getVehicleUpdateDistances().unkDistance2);
 
         if (status == Status::stopped)
         {
@@ -2276,14 +2274,14 @@ namespace OpenLoco::Vehicles
         Vehicle2* vehType2 = train.veh2;
         if (vehType2->currentSpeed >= 5.0_mph)
         {
-            _vehicleUpdate_var_1136130 = 0x4000;
+            getVehicleUpdateDistances().unkDistance2 = 0x4000;
         }
         else
         {
-            _vehicleUpdate_var_1136130 = 0x2000;
+            getVehicleUpdateDistances().unkDistance2 = 0x2000;
         }
 
-        train.cars.firstCar.body->sub_4AAB0B({});
+        train.cars.firstCar.body->sub_4AAB0B({}, getVehicleUpdateDistances().unkDistance2);
 
         if (status == Status::stopped)
         {
@@ -4633,7 +4631,7 @@ namespace OpenLoco::Vehicles
                         if (isBlockOccupied(nextPos, tad, head.owner, head.trackType))
                         {
                             setSignalState(nextPos, tad, head.trackType, 8);
-                            return Sub4ACEE7Result{ 3, *_vehicleMangled_113623B, StationId::null };
+                            return Sub4ACEE7Result{ 3, _vehicleMangled_113623B, StationId::null };
                         }
                     }
 
@@ -4642,19 +4640,19 @@ namespace OpenLoco::Vehicles
                         // 0x004AD490
                         if (train.veh1->var_52 != 0)
                         {
-                            _vehicleMangled_113623B = *_vehicleMangled_113623B | (1U << 7);
+                            _vehicleMangled_113623B = _vehicleMangled_113623B | (1U << 7);
                             train.veh1->var_52--;
 
-                            return Sub4ACEE7Result{ 3, *_vehicleMangled_113623B, StationId::null };
+                            return Sub4ACEE7Result{ 3, _vehicleMangled_113623B, StationId::null };
                         }
                         else
                         {
                             if (!(sub_4A2A77(nextPos, tad, head.owner, head.trackType) & ((1U << 0) | (1U << 1))))
                             {
-                                _vehicleMangled_113623B = *_vehicleMangled_113623B | (1U << 7);
+                                _vehicleMangled_113623B = _vehicleMangled_113623B | (1U << 7);
                                 train.veh1->var_52 = 55;
 
-                                return Sub4ACEE7Result{ 3, *_vehicleMangled_113623B, StationId::null };
+                                return Sub4ACEE7Result{ 3, _vehicleMangled_113623B, StationId::null };
                             }
                         }
                     }
