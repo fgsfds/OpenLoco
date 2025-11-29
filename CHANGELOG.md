@@ -3,6 +3,7 @@
 - Change: [#3384] Music selection window is now resizable, sortable, and displays the time period associated with each track.
 - Change: [#3402] Text input windows now show the total characters used rather than the current character position.
 - Change: [#3473] Fences can now be interacted with in viewports outside of the scenario editor as well.
+- Fix: [#2957] Bridge supports not being drawn under different corners than in vanilla.
 - Fix: [#3313] Vehicle orders not being deleted correctly when the station is deallocated.
 - Fix: [#3395] Text input windows no longer show character limits.
 - Fix: [#3401] The character limit label is using the wrong text colour.
@@ -18,6 +19,7 @@
 - Change: [#3323] Refitting a vehicle or removing components from it now asks for confirmation if the vehicle contains any cargo.
 - Fix: [#2797] Single player scenario scores reset when adding a new scenario.
 - Fix: [#3032] Toggling "Play Music" from the top toolbar does not refresh the status in the options window.
+- Fix: [#3200] Certain formatting control codes can be typed in text boxes.
 - Fix: [#3281] Modifying the news options does not trigger a config file write, potentially losing the changes.
 - Fix: [#3314] Players can remove roads owned by other companies.
 - Fix: [#3315] Players can replace station elements owned by other companies.
