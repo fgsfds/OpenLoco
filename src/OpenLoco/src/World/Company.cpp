@@ -27,6 +27,10 @@
 #include "TownManager.h"
 #include "Ui/WindowManager.h"
 #include "Vehicles/Vehicle.h"
+#include "Vehicles/Vehicle2.h"
+#include "Vehicles/VehicleBody.h"
+#include "Vehicles/VehicleBogie.h"
+#include "Vehicles/VehicleHead.h"
 #include "Vehicles/VehicleManager.h"
 #include "ViewportManager.h"
 #include <OpenLoco/Core/Numerics.hpp>
@@ -1041,7 +1045,7 @@ namespace OpenLoco
                 // Reduces progress by 10% for each company outside of top 3 better performing than the player
                 // Caps out at 30% reduction
                 const auto multiplier = std::min(numCompaniesBetterPerforming - 2, 3U);
-                return std::max(progress - 10 * multiplier, 0U);
+                return static_cast<uint8_t>(std::max(progress - 10 * multiplier, 0U));
             }
             return progress;
         }
