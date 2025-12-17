@@ -11,12 +11,14 @@
 - Fix: [#3313] Vehicle orders not being deleted correctly when the station is deallocated.
 - Fix: [#3395] Text input windows no longer show character limits.
 - Fix: [#3401] The character limit label is using the wrong text colour.
+- Fix: [#3403] Changing a town name displays an incorrect message prompt.
 - Fix: [#3422] Window resize handles don't work properly in windows with status bars.
 - Fix: [#3431] Marker-related config variables are not saved properly.
 - Fix: [#3455] The 'Plant Trees' status bar is not rendered correctly.
 - Fix: [#3466] Game crashes if you press a multimedia key on your keyboard (e.g. 'next track').
 - Fix: [#3496] Incorrect (off by 1 quantity) building cargo tooltip displayed.
 - Fix: [#3503] Crash when placing airports or docks in a scenario with no track objects.
+- Fix: [#3544] Viewport panning (right-mouse click drag) is broken during tutorial playback.
 
 25.11 (2025-11-05)
 ------------------------------------------------------------------------
