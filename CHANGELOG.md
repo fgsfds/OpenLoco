@@ -1,5 +1,6 @@
 25.11+ (???)
 ------------------------------------------------------------------------
+- Feature: [#3288, #3523] Native, independent 64-bit architecture builds for Windows, Linux, and macOS.
 - Change: [#3384] Music selection window is now resizable, sortable, and displays the time period associated with each track.
 - Change: [#3402] Text input windows now show the total characters used rather than the current character position.
 - Change: [#3405] The object selection window is now resizeable, making room for longer object names.
@@ -9,6 +10,7 @@
 - Change: [#3535] Loading a save game from command line now skips loading the title scene.
 - Fix: [#2957] Bridge supports not being drawn under different corners than in vanilla.
 - Fix: [#3313] Vehicle orders not being deleted correctly when the station is deallocated.
+- Fix: [#3354] Overly long strings make it possible to bypass text input limits.
 - Fix: [#3395] Text input windows no longer show character limits.
 - Fix: [#3401] The character limit label is using the wrong text colour.
 - Fix: [#3403] Changing a town name displays an incorrect message prompt.
