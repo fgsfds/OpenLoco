@@ -58,7 +58,7 @@
 - Change: [#2914, #3179, #3369] Object Selection window is now modal when in play mode.
 - Change: [#3323] Refitting a vehicle or removing components from it now asks for confirmation if the vehicle contains any cargo.
 - Fix: [#2797] Single player scenario scores reset when adding a new scenario.
-- Fix: [#3032] Toggling "Play Music" from the top toolbar does not refresh the status in the options window.
+- Fix: [#3032] Toggling "Play Music" from the top toolbar does not refresh the status in the options window (original bug).
 - Fix: [#3200] Certain formatting control codes can be typed in text boxes.
 - Fix: [#3281] Modifying the news options does not trigger a config file write, potentially losing the changes.
 - Fix: [#3314] Players can remove roads owned by other companies.
@@ -87,6 +87,7 @@
 25.08 (2025-08-26)
 ------------------------------------------------------------------------
 - Change: [#1682, #3216] Scroll widgets now support much larger sizes.
+- Change: [#3052] Add refund for removing bridges.
 - Change: [#3104] Landscape generation confirmation prompts now prevent you from clicking other windows until a choice is made.
 - Change: [#3193] The minimum size of the map window was changed to accommodate all elements.
 - Fix: [#3019] Mouse getting stuck on edges of monitor when right mouse dragging scroll views.
@@ -294,7 +295,7 @@
 
 24.03 (2024-03-30)
 ------------------------------------------------------------------------
-- Feature: [#126] Station size limitations can now be disabled (though still max 80 tiles per station).
+- Feature: [#358] Station size limitations can now be disabled (though still max 80 tiles per station).
 - Feature: [#1941] Landscapes can now be generated directly from 384x384 PNG images.
 - Feature: [#2331] Allow setting a preferred owner face to be used for new games.
 - Change: [#2324] Loading and saving landscapes now defaults to the OpenLoco user folder.
