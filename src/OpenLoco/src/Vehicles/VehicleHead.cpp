@@ -476,7 +476,7 @@ namespace OpenLoco::Vehicles
                     applyBreakdownToTrain();
 
                     auto soundId = (Audio::SoundId)gPrng1().randNext(26, 26 + 5);
-                    Audio::playSound(soundId, car.body->position + World::Pos3{ 0, 0, 22 });
+                    Audio::playSound(soundId, Audio::ChannelId::vehicles, car.body->position + World::Pos3{ 0, 0, 22 });
                 }
             }
         }
@@ -2677,7 +2677,7 @@ namespace OpenLoco::Vehicles
             {
                 volume = -1500;
             }
-            Audio::playSound(randSoundId, veh2->position + World::Pos3{ 0, 0, 22 }, volume, 22050);
+            Audio::playSound(randSoundId, Audio::ChannelId::vehicles, veh2->position + World::Pos3{ 0, 0, 22 }, volume, 22050);
         }
     }
 
@@ -2812,21 +2812,17 @@ namespace OpenLoco::Vehicles
 
         // The first bogie of the plane is the shadow of the plane
         auto* shadow = train.cars.firstCar.front;
-        shadow->invalidateSprite();
         auto height = coord_t{ TileManager::getHeight(newLoc) };
         shadow->moveTo({ newLoc.x, newLoc.y, height });
         shadow->spriteYaw = newYaw;
         shadow->spritePitch = Pitch::flat;
         shadow->tileX = 0;
-        shadow->invalidateSprite();
 
         auto* body = train.cars.firstCar.body;
-        body->invalidateSprite();
         body->moveTo({ newLoc.x, newLoc.y, newLoc.z });
         body->spriteYaw = newYaw;
         body->spritePitch = newPitch;
         body->tileX = 0;
-        body->invalidateSprite();
     }
 
     // 0x00427C05
@@ -3026,12 +3022,10 @@ namespace OpenLoco::Vehicles
         train.veh1->tileX = 0;
         train.veh2->moveTo({ newLoc.x, newLoc.y, newLoc.z });
         train.veh2->tileX = 0;
-        train.cars.firstCar.body->invalidateSprite();
         train.cars.firstCar.body->moveTo({ newLoc.x, newLoc.y, newLoc.z });
         train.cars.firstCar.body->spriteYaw = yaw;
         train.cars.firstCar.body->spritePitch = pitch;
         train.cars.firstCar.body->tileX = 0;
-        train.cars.firstCar.body->invalidateSprite();
     }
 
     uint8_t VehicleHead::getLoadingModifier(const VehicleBogie* bogie)
@@ -3323,7 +3317,7 @@ namespace OpenLoco::Vehicles
             auto loc = train.cars.firstCar.body->position + World::Pos3{ 0, 0, 28 };
             CompanyManager::spendMoneyEffect(loc, owner, -cargoProfit);
 
-            Audio::playSound(Audio::SoundId::income, loc);
+            Audio::playSound(Audio::SoundId::income, Audio::ChannelId::ui, loc);
         }
 
         beginLoading();
@@ -3644,7 +3638,7 @@ namespace OpenLoco::Vehicles
             auto randSoundIndex = gPrng1().randNext((vehObj->numStartSounds & NumStartSounds::kMask) - 1);
             auto randSoundId = Audio::makeObjectSoundId(vehObj->startSounds[randSoundIndex]);
             Vehicle2* veh2 = train.veh2;
-            Audio::playSound(randSoundId, veh2->position + World::Pos3{ 0, 0, 22 }, 0, 22050);
+            Audio::playSound(randSoundId, Audio::ChannelId::vehicles, veh2->position + World::Pos3{ 0, 0, 22 }, 0, 22050);
         }
     }
 
@@ -3893,7 +3887,7 @@ namespace OpenLoco::Vehicles
             auto randSoundId = Audio::makeObjectSoundId(vehObj->startSounds[randSoundIndex]);
 
             Vehicle2* veh2 = train.veh2;
-            Audio::playSound(randSoundId, veh2->position + World::Pos3{ 0, 0, 22 }, 0, 22050);
+            Audio::playSound(randSoundId, Audio::ChannelId::vehicles, veh2->position + World::Pos3{ 0, 0, 22 }, 0, 22050);
         }
     }
 
@@ -6987,6 +6981,8 @@ namespace OpenLoco::Vehicles
             std::swap(train.veh2->sound.drivingSoundVolume, train.tail->sound.drivingSoundVolume);
             std::swap(train.veh2->sound.drivingSoundFrequency, train.tail->sound.drivingSoundFrequency);
             std::swap(train.veh2->sound.soundFlags, train.tail->sound.soundFlags);
+            std::swap(train.veh2->sound.audioHandle, train.tail->sound.audioHandle);
+            std::swap(train.veh2->sound.activeSoundId, train.tail->sound.activeSoundId);
         }
         train.veh2->sound.objectId = frontSoundingObjId;
         train.tail->sound.objectId = backSoundingObjId;
