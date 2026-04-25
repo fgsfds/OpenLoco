@@ -58,7 +58,7 @@ namespace OpenLoco::Audio
     void playBackgroundMusic()
     {
         auto& cfg = Config::get();
-        if (cfg.audio.playJukeboxMusic == 0 || SceneManager::isTitleMode() || SceneManager::isEditorMode() || SceneManager::isPaused())
+        if (cfg.audio.playJukeboxMusic == 0 || !isAudioEnabled() || SceneManager::isTitleMode() || SceneManager::isEditorMode() || SceneManager::isPaused())
         {
             return;
         }
@@ -68,7 +68,7 @@ namespace OpenLoco::Audio
         {
             const auto& mi = Jukebox::changeTrack();
             playMusic(mi.pathId, cfg.audio.mainVolume, false);
-            Ui::WindowManager::invalidate(Ui::WindowType::options);
+            Ui::WindowManager::invalidate(Ui::WindowType::musicJukebox);
         }
     }
 

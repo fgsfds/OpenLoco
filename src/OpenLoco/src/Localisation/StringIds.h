@@ -710,6 +710,8 @@ namespace OpenLoco::StringIds
     constexpr StringId keyboard_insert = 785;
     constexpr StringId keyboard_delete = 786;
 
+    constexpr StringId keyboard_menu = 833;
+
     constexpr StringId keyboard_numpad_0 = 836;
     constexpr StringId keyboard_numpad_1 = 837;
     constexpr StringId keyboard_numpad_2 = 838;
@@ -2145,6 +2147,9 @@ namespace OpenLoco::StringIds
     constexpr StringId sortDescendingOrder = 2431;
     constexpr StringId sortByCapacity = 2432;
     constexpr StringId sortByObsolete = 2433;
+    constexpr StringId cheat_vehicle_cargo = 2434;
+    constexpr StringId cheat_keep_cargo_modify_pickup = 2435;
+    constexpr StringId tooltip_keep_cargo_modify_pickup = 2436;
 
     constexpr StringId temporary_object_load_str_0 = 8192;
     constexpr StringId temporary_object_load_str_1 = 8193;

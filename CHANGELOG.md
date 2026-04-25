@@ -1,13 +1,17 @@
 26.03.1+ (???)
 ------------------------------------------------------------------------
 - Feature: [#1438] Add basic blueprint feature for copy, paste and rotate railroad track.
+- Feature: [#3591] Cheat to keep cargo when picking up a vehicle or modifying a vehicle's components.
 - Feature: [#3639] The Locomotion title screen music can now be listened to during scenario play.
 - Change: [#3594] More sorting options when building vehicles.
 - Change: [#3702, #3703, #3704, #3705] Improved performance for vehicle, industry, town, station, and company lists.
 - Change: [#3707] The music jukebox has been moved from the options window to its own, with an optional keyboard shortcut.
 - Fix: [#2248, #3681] Newly placed signals can incorrectly update track network.
+- Fix: [#3029] Even when audio is muted, the game continues to advance the jukebox playlist.
 - Fix: [#3173] Having multiple (station) vehicle lists open at once may cause duplicates and/or flashing listings.
+- Fix: [#3183] Sound and music being unpaused when the game is still paused in certain situations.
 - Fix: [#3334] Auto order of cars with centrePosition flag incorrectly calculated.
+- Fix: [#3467] 'Menu' key is not localised in the keyboard shortcuts list.
 - Fix: [#3634] Invalidation issue when show AI planning is turned off.
 - Fix: [#3638] Loan can go negative.
 - Fix: [#3655] Incorrect scaffolding preview image in object selection window.
