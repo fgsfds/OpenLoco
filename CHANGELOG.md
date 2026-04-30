@@ -1,4 +1,7 @@
-26.03.1+ (???)
+26.04+ (???)
+------------------------------------------------------------------------
+
+26.04 (2026-04-29)
 ------------------------------------------------------------------------
 - Feature: [#1438] Add basic blueprint feature for copy, paste and rotate railroad track.
 - Feature: [#3591] Cheat to keep cargo when picking up a vehicle or modifying a vehicle's components.
@@ -16,6 +19,7 @@
 - Fix: [#3638] Loan can go negative.
 - Fix: [#3655] Incorrect scaffolding preview image in object selection window.
 - Fix: [#3694] Crash when starting bus/truck immediately behind another bus/truck (original bug).
+- Fix: [#3721] Potential crash when dragging a vehicle component in a vehicle window.
 
 26.03.1 (2026-04-01)
 ------------------------------------------------------------------------
