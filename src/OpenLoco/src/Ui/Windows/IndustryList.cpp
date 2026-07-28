@@ -59,15 +59,25 @@ namespace OpenLoco::Ui::Windows::IndustryList
             tab_new_industry,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kFrame{ "frame" };
+            constexpr WidgetId kCaption{ "caption" };
+            constexpr WidgetId kCloseButton{ "close_button" };
+            constexpr WidgetId kPanel{ "panel" };
+            constexpr WidgetId kTabIndustryList{ "tab_industry_list" };
+            constexpr WidgetId kTabNewIndustry{ "tab_new_industry" };
+        }
+
         static constexpr auto makeCommonWidgets(int32_t frameWidth, int32_t frameHeight, StringId windowCaptionId)
         {
             return makeWidgets(
-                Widgets::Frame({ 0, 0 }, { frameWidth, frameHeight }, WindowColour::primary),
-                Widgets::Caption({ 1, 1 }, { frameWidth - 2, 13 }, Widgets::Caption::Style::whiteText, WindowColour::primary, windowCaptionId),
-                Widgets::ImageButton({ frameWidth - 15, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
-                Widgets::Panel({ 0, 41 }, { frameWidth, 154 }, WindowColour::secondary),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_industries_list),
-                Widgets::Tab({ 34, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_fund_new_industries));
+                Widgets::Frame(Widx::kFrame, { 0, 0 }, { frameWidth, frameHeight }, WindowColour::primary),
+                Widgets::Caption(Widx::kCaption, { 1, 1 }, { frameWidth - 2, 13 }, Widgets::Caption::Style::whiteText, WindowColour::primary, windowCaptionId),
+                Widgets::ImageButton(Widx::kCloseButton, { frameWidth - 15, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
+                Widgets::Panel(Widx::kPanel, { 0, 41 }, { frameWidth, 154 }, WindowColour::secondary),
+                Widgets::Tab(Widx::kTabIndustryList, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_industries_list),
+                Widgets::Tab(Widx::kTabNewIndustry, { 34, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_fund_new_industries));
         }
 
         static void populateIndustryList(Window& self);
@@ -94,14 +104,24 @@ namespace OpenLoco::Ui::Windows::IndustryList
             status_bar,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kSortIndustryName{ "sort_industry_name" };
+            constexpr WidgetId kSortIndustryStatus{ "sort_industry_status" };
+            constexpr WidgetId kSortIndustryProductionTransported{ "sort_industry_production_transported" };
+            constexpr WidgetId kSortIndustryProductionLastMonth{ "sort_industry_production_last_month" };
+            constexpr WidgetId kScrollview{ "scrollview" };
+            constexpr WidgetId kStatusBar{ "status_bar" };
+        }
+
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(600, 197, StringIds::title_industries),
-            Widgets::TableHeader({ 4, 44 }, { 199, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_name),
-            Widgets::TableHeader({ 204, 44 }, { 204, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_status),
-            Widgets::TableHeader({ 444, 44 }, { 159, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_production_transported),
-            Widgets::TableHeader({ 603, 44 }, { 159, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_production_last_month),
-            Widgets::ScrollView({ 3, 56 }, { 593, 125 }, WindowColour::secondary, Scrollbars::vertical),
-            Widgets::Label({ 4, kWindowSize.height - 17 }, { kWindowSize.width - kResizeHandleSize, 10 }, WindowColour::secondary, ContentAlign::left, StringIds::black_stringid)
+            Widgets::TableHeader(Widx::kSortIndustryName, { 4, 44 }, { 199, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_name),
+            Widgets::TableHeader(Widx::kSortIndustryStatus, { 204, 44 }, { 204, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_status),
+            Widgets::TableHeader(Widx::kSortIndustryProductionTransported, { 444, 44 }, { 159, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_production_transported),
+            Widgets::TableHeader(Widx::kSortIndustryProductionLastMonth, { 603, 44 }, { 159, 11 }, WindowColour::secondary, Widget::kContentNull, StringIds::sort_industry_production_last_month),
+            Widgets::ScrollView(Widx::kScrollview, { 3, 56 }, { 593, 125 }, WindowColour::secondary, Scrollbars::vertical),
+            Widgets::Label(Widx::kStatusBar, { 4, kWindowSize.height - 17 }, { kWindowSize.width - kResizeHandleSize, 10 }, WindowColour::secondary, ContentAlign::left, StringIds::black_stringid)
 
         );
 
@@ -170,21 +190,21 @@ namespace OpenLoco::Ui::Windows::IndustryList
         // 0x00457EC4
         static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case Common::widx::close_button:
+                case Common::Widx::kCloseButton:
                     WindowManager::close(&self);
                     break;
 
-                case Common::widx::tab_industry_list:
-                case Common::widx::tab_new_industry:
+                case Common::Widx::kTabIndustryList:
+                case Common::Widx::kTabNewIndustry:
                     Common::switchTab(self, widgetIndex);
                     break;
 
-                case widx::sort_industry_name:
-                case widx::sort_industry_status:
-                case widx::sort_industry_production_transported:
-                case widx::sort_industry_production_last_month:
+                case Widx::kSortIndustryName:
+                case Widx::kSortIndustryStatus:
+                case Widx::kSortIndustryProductionTransported:
+                case Widx::kSortIndustryProductionLastMonth:
                 {
                     auto sortMode = widgetIndex - widx::sort_industry_name;
                     if (self.sortMode == sortMode)
@@ -482,9 +502,9 @@ namespace OpenLoco::Ui::Windows::IndustryList
         }
 
         // 0x00458113
-        static Ui::CursorId cursor(Window& self, WidgetIndex_t widgetIdx, [[maybe_unused]] const WidgetId id, [[maybe_unused]] int16_t xPos, int16_t yPos, Ui::CursorId fallback)
+        static Ui::CursorId cursor(Window& self, [[maybe_unused]] WidgetIndex_t widgetIdx, const WidgetId id, [[maybe_unused]] int16_t xPos, int16_t yPos, Ui::CursorId fallback)
         {
-            if (widgetIdx != widx::scrollview)
+            if (id != Widx::kScrollview)
             {
                 return fallback;
             }
@@ -646,9 +666,14 @@ namespace OpenLoco::Ui::Windows::IndustryList
             scrollview = 6,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kScrollview{ "scrollview" };
+        }
+
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(577, 171, StringIds::title_fund_new_industries),
-            Widgets::ScrollView({ 3, 45 }, { 549, 111 }, WindowColour::secondary, Scrollbars::vertical)
+            Widgets::ScrollView(Widx::kScrollview, { 3, 45 }, { 549, kRowHeight }, WindowColour::secondary, Scrollbars::vertical)
 
         );
 
@@ -740,14 +765,14 @@ namespace OpenLoco::Ui::Windows::IndustryList
         // 0x0045843A
         static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case Common::widx::close_button:
+                case Common::Widx::kCloseButton:
                     WindowManager::close(&self);
                     break;
 
-                case Common::widx::tab_industry_list:
-                case Common::widx::tab_new_industry:
+                case Common::Widx::kTabIndustryList:
+                case Common::Widx::kTabNewIndustry:
                     Common::switchTab(self, widgetIndex);
                     break;
             }
@@ -856,50 +881,40 @@ namespace OpenLoco::Ui::Windows::IndustryList
             }
         }
 
+        static void updateActiveThumb(Window& self);
+
         // 0x004585B8
         static void onUpdate(Window& self)
         {
+            bool hasResized = false;
             if (!Input::hasFlag(Input::Flags::rightMousePressed))
             {
                 auto cursor = Input::getMouseLocation();
-                auto xPos = cursor.x;
-                auto yPos = cursor.y;
-                Window* activeWindow = WindowManager::findAt(xPos, yPos);
+                Window* activeWindow = WindowManager::findAt(cursor.x, cursor.y);
                 if (activeWindow == &self)
                 {
-                    xPos -= self.x;
-                    xPos += 26;
-                    yPos -= self.y;
-
-                    if ((yPos < 42) || (xPos <= self.width))
+                    auto xPos = cursor.x - self.x;
+                    auto yPos = cursor.y - self.y;
+                    if ((yPos < 42) || (xPos + 4 <= self.width))
                     {
-                        xPos = cursor.x;
-                        yPos = cursor.y;
-                        WidgetIndex_t activeWidget = self.findWidgetAt(xPos, yPos);
-
+                        auto activeWidget = self.findWidgetAt(cursor.x, cursor.y);
                         if (activeWidget > Common::widx::panel)
                         {
                             self.expandContentCounter += 1;
                             if (self.expandContentCounter >= 8)
                             {
-                                auto y = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 500);
+                                auto newHeight = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 500);
                                 if (Ui::height() < 600)
                                 {
-                                    y = std::min(y, 276);
+                                    newHeight = std::min(newHeight, 276);
                                 }
-                                self.minWidth = kWindowSize.width;
-                                self.minHeight = y;
-                                self.maxWidth = kWindowSize.width;
-                                self.maxHeight = y;
+                                hasResized |= self.setSize({ kWindowSize.width, newHeight });
                             }
                             else
                             {
                                 if (Input::state() != Input::State::scrollLeft)
                                 {
-                                    self.minWidth = kWindowSize.width;
-                                    self.minHeight = kWindowSize.height;
-                                    self.maxWidth = kWindowSize.width;
-                                    self.maxHeight = kWindowSize.height;
+                                    hasResized |= self.setSize(kWindowSize);
                                 }
                             }
                         }
@@ -910,16 +925,18 @@ namespace OpenLoco::Ui::Windows::IndustryList
                     self.expandContentCounter = 0;
                     if (Input::state() != Input::State::scrollLeft)
                     {
-                        self.minWidth = kWindowSize.width;
-                        self.minHeight = kWindowSize.height;
-                        self.maxWidth = kWindowSize.width;
-                        self.maxHeight = kWindowSize.height;
+                        hasResized |= self.setSize(kWindowSize);
                     }
                 }
             }
             self.frameNo++;
 
             self.callPrepareDraw();
+            if (hasResized)
+            {
+                updateActiveThumb(self);
+            }
+
             WindowManager::invalidateWidget(WindowType::industryList, self.number, self.currentTab + Common::widx::tab_industry_list);
 
             if (!ToolManager::isToolActive(self.type, self.number))

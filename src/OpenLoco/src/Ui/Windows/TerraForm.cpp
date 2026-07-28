@@ -74,18 +74,31 @@ namespace OpenLoco::Ui::Windows::Terraform
             tab_build_walls,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kFrame{ "frame" };
+            constexpr WidgetId kCaption{ "caption" };
+            constexpr WidgetId kCloseButton{ "close_button" };
+            constexpr WidgetId kPanel{ "panel" };
+            constexpr WidgetId kTabClearArea{ "tab_clear_area" };
+            constexpr WidgetId kTabAdjustLand{ "tab_adjust_land" };
+            constexpr WidgetId kTabAdjustWater{ "tab_adjust_water" };
+            constexpr WidgetId kTabPlantTrees{ "tab_plant_trees" };
+            constexpr WidgetId kTabBuildWalls{ "tab_build_walls" };
+        }
+
         static constexpr auto makeCommonWidgets(int32_t frameWidth, int32_t frameHeight, StringId windowCaptionId)
         {
             return makeWidgets(
-                Widgets::Frame({ 0, 0 }, { frameWidth, frameHeight }, WindowColour::primary),
-                Widgets::Caption({ 1, 1 }, { frameWidth - 2, 13 }, Widgets::Caption::Style::colourText, WindowColour::primary, windowCaptionId),
-                Widgets::ImageButton({ frameWidth - 15, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
-                Widgets::Panel({ 0, 41 }, { 130, 74 }, WindowColour::secondary),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_clear_land),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_adjust_land),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_adjust_water),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_plant_trees),
-                Widgets::Tab({ 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_build_walls));
+                Widgets::Frame(Widx::kFrame, { 0, 0 }, { frameWidth, frameHeight }, WindowColour::primary),
+                Widgets::Caption(Widx::kCaption, { 1, 1 }, { frameWidth - 2, 13 }, Widgets::Caption::Style::colourText, WindowColour::primary, windowCaptionId),
+                Widgets::ImageButton(Widx::kCloseButton, { frameWidth - 15, 2 }, { 13, 13 }, WindowColour::primary, ImageIds::close_button, StringIds::tooltip_close_window),
+                Widgets::Panel(Widx::kPanel, { 0, 41 }, { 130, 74 }, WindowColour::secondary),
+                Widgets::Tab(Widx::kTabClearArea, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_clear_land),
+                Widgets::Tab(Widx::kTabAdjustLand, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_adjust_land),
+                Widgets::Tab(Widx::kTabAdjustWater, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_adjust_water),
+                Widgets::Tab(Widx::kTabPlantTrees, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_plant_trees),
+                Widgets::Tab(Widx::kTabBuildWalls, { 3, 15 }, { 31, 27 }, WindowColour::secondary, ImageIds::tab, StringIds::tooltip_build_walls));
         }
 
         static void switchTab(Window& self, WidgetIndex_t widgetIndex);
@@ -145,15 +158,24 @@ namespace OpenLoco::Ui::Windows::Terraform
             plant_cluster_random,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kScrollview{ "scrollview" };
+            constexpr WidgetId kRotateObject{ "rotate_object" };
+            constexpr WidgetId kObjectColour{ "object_colour" };
+            constexpr WidgetId kPlantClusterSelected{ "plant_cluster_selected" };
+            constexpr WidgetId kPlantClusterRandom{ "plant_cluster_random" };
+        }
+
         const uint64_t holdableWidgets = 0;
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(634, 162, StringIds::title_plant_trees),
-            Widgets::ScrollView({ 3, 45 }, { 605, 101 }, WindowColour::secondary, Scrollbars::vertical),
-            Widgets::ImageButton({ 609, 46 }, { 24, 24 }, WindowColour::secondary, ImageIds::rotate_object, StringIds::rotate_object_90),
-            Widgets::ColourButton({ 609, 70 }, { 24, 24 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_object_colour),
-            Widgets::ImageButton({ 609, 94 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_selected_tree, StringIds::plant_cluster_selected_tree),
-            Widgets::ImageButton({ 609, 118 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_random_tree, StringIds::plant_cluster_random_tree)
+            Widgets::ScrollView(Widx::kScrollview, { 3, 45 }, { 605, kRowHeight }, WindowColour::secondary, Scrollbars::vertical),
+            Widgets::ImageButton(Widx::kRotateObject, { 609, 46 }, { 24, 24 }, WindowColour::secondary, ImageIds::rotate_object, StringIds::rotate_object_90),
+            Widgets::ColourButton(Widx::kObjectColour, { 609, 70 }, { 24, 24 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_object_colour),
+            Widgets::ImageButton(Widx::kPlantClusterSelected, { 609, 94 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_selected_tree, StringIds::plant_cluster_selected_tree),
+            Widgets::ImageButton(Widx::kPlantClusterRandom, { 609, 118 }, { 24, 24 }, WindowColour::secondary, ImageIds::plant_cluster_random_tree, StringIds::plant_cluster_random_tree)
 
         );
 
@@ -271,23 +293,23 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BBAB5
-        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case Common::widx::close_button:
+                case Common::Widx::kCloseButton:
                     WindowManager::close(&self);
                     break;
 
-                case Common::widx::tab_adjust_land:
-                case Common::widx::tab_adjust_water:
-                case Common::widx::tab_build_walls:
-                case Common::widx::tab_clear_area:
-                case Common::widx::tab_plant_trees:
+                case Common::Widx::kTabAdjustLand:
+                case Common::Widx::kTabAdjustWater:
+                case Common::Widx::kTabBuildWalls:
+                case Common::Widx::kTabClearArea:
+                case Common::Widx::kTabPlantTrees:
                     Common::switchTab(self, widgetIndex);
                     break;
 
-                case widx::rotate_object:
+                case Widx::kRotateObject:
                 {
                     _treeRotation++;
                     _treeRotation &= 3;
@@ -295,7 +317,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::plant_cluster_selected:
+                case Widx::kPlantClusterSelected:
                 {
                     if (_treeClusterType == treeCluster::selected)
                     {
@@ -309,7 +331,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::plant_cluster_random:
+                case Widx::kPlantClusterRandom:
                 {
                     if (_treeClusterType == treeCluster::random)
                     {
@@ -338,9 +360,9 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BBAEA
-        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            if (widgetIndex == widx::object_colour && self.rowHover != -1)
+            if (id == Widx::kObjectColour && self.rowHover != -1)
             {
                 auto obj = ObjectManager::get<TreeObject>(self.rowHover);
                 Dropdown::showColour(&self, &self.widgets[widgetIndex], obj->colours, _treeColour, self.getColour(WindowColour::secondary));
@@ -348,9 +370,9 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BBAF5
-        static void onDropdown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id, int16_t itemIndex)
+        static void onDropdown(Window& self, [[maybe_unused]] WidgetIndex_t widgetIndex, const WidgetId id, int16_t itemIndex)
         {
-            if (widgetIndex != widx::object_colour)
+            if (id != Widx::kObjectColour)
             {
                 return;
             }
@@ -376,47 +398,35 @@ namespace OpenLoco::Ui::Windows::Terraform
                 WindowManager::close(&self);
             }
 
+            bool hasResized = false;
             if (!Input::hasFlag(Input::Flags::rightMousePressed))
             {
                 auto cursor = Input::getMouseLocation();
-                auto xPos = cursor.x;
-                auto yPos = cursor.y;
-                Window* activeWindow = WindowManager::findAt(xPos, yPos);
+                Window* activeWindow = WindowManager::findAt(cursor.x, cursor.y);
                 if (activeWindow == &self)
                 {
-                    xPos -= self.x;
-                    xPos += 26;
-                    yPos -= self.y;
-
-                    if ((yPos < 42) || (xPos <= self.width))
+                    auto xPos = cursor.x - self.x;
+                    auto yPos = cursor.y - self.y;
+                    if ((yPos < 42) || (xPos + 26 <= self.width))
                     {
-                        xPos = cursor.x;
-                        yPos = cursor.y;
-                        WidgetIndex_t activeWidget = self.findWidgetAt(xPos, yPos);
-
+                        auto activeWidget = self.findWidgetAt(cursor.x, cursor.y);
                         if (activeWidget > Common::widx::panel)
                         {
                             self.expandContentCounter += 1;
                             if (self.expandContentCounter >= 8)
                             {
-                                auto y = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 562);
+                                auto newHeight = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 562);
                                 if (Ui::height() < 600)
                                 {
-                                    y = std::min(y, 358);
+                                    newHeight = std::min(newHeight, 358);
                                 }
-                                self.minWidth = kWindowSize.width;
-                                self.minHeight = y;
-                                self.maxWidth = kWindowSize.width;
-                                self.maxHeight = y;
+                                hasResized |= self.setSize({ kWindowSize.width, newHeight });
                             }
                             else
                             {
                                 if (Input::state() != Input::State::scrollLeft)
                                 {
-                                    self.minWidth = kWindowSize.width;
-                                    self.minHeight = kWindowSize.height;
-                                    self.maxWidth = kWindowSize.width;
-                                    self.maxHeight = kWindowSize.height;
+                                    hasResized |= self.setSize(kWindowSize);
                                 }
                             }
                         }
@@ -427,16 +437,18 @@ namespace OpenLoco::Ui::Windows::Terraform
                     self.expandContentCounter = 0;
                     if (Input::state() != Input::State::scrollLeft)
                     {
-                        self.minWidth = kWindowSize.width;
-                        self.minHeight = kWindowSize.height;
-                        self.maxWidth = kWindowSize.width;
-                        self.maxHeight = kWindowSize.height;
+                        hasResized |= self.setSize(kWindowSize);
                     }
                 }
             }
             self.frameNo++;
 
             self.callPrepareDraw();
+            if (hasResized)
+            {
+                updateActiveThumb(self);
+            }
+
             WindowManager::invalidateWidget(WindowType::terraform, self.number, self.currentTab + Common::widx::tab_clear_area);
         }
 
@@ -982,13 +994,20 @@ namespace OpenLoco::Ui::Windows::Terraform
             increase_area,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kToolArea{ "tool_area" };
+            constexpr WidgetId kDecreaseArea{ "decrease_area" };
+            constexpr WidgetId kIncreaseArea{ "increase_area" };
+        }
+
         const uint64_t holdableWidgets = (1 << decrease_area) | (1 << increase_area);
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::clear_area),
-            Widgets::Wt3Widget({ 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_clear_area),
-            Widgets::ImageButton({ 34 + 16, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_clear_area),
-            Widgets::ImageButton({ 80 + 16, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_clear_area)
+            Widgets::Wt3Widget(Widx::kToolArea, { 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_clear_area),
+            Widgets::ImageButton(Widx::kDecreaseArea, { 34 + 16, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_clear_area),
+            Widgets::ImageButton(Widx::kIncreaseArea, { 80 + 16, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_clear_area)
 
         );
 
@@ -1014,11 +1033,11 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BC65C
-        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseDown(Window& self, [[maybe_unused]] WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case widx::decrease_area:
+                case Widx::kDecreaseArea:
                 {
                     _adjustToolSize--;
                     if (_adjustToolSize < 1)
@@ -1030,7 +1049,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::increase_area:
+                case Widx::kIncreaseArea:
                 {
                     _adjustToolSize++;
                     if (_adjustToolSize > 64)
@@ -1221,18 +1240,28 @@ namespace OpenLoco::Ui::Windows::Terraform
             land_material
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kToolArea{ "tool_area" };
+            constexpr WidgetId kDecreaseArea{ "decrease_area" };
+            constexpr WidgetId kIncreaseArea{ "increase_area" };
+            constexpr WidgetId kMountainMode{ "mountain_mode" };
+            constexpr WidgetId kPaintMode{ "paint_mode" };
+            constexpr WidgetId kLandMaterial{ "land_material" };
+        }
+
         const uint64_t holdableWidgets = (1 << decrease_area) | (1 << increase_area);
         static bool isMountainMode = false;
         static bool isPaintMode = false;
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::title_adjust_land),
-            Widgets::Wt3Widget({ 49, 45 }, { 64, 44 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_adjust_land_tool),
-            Widgets::ImageButton({ 50, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_land_area),
-            Widgets::ImageButton({ 96, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_land_area),
-            Widgets::ImageButton({ 57, 92 }, { 24, 24 }, WindowColour::secondary, ImageIds::construction_slope_up, StringIds::mountainModeTooltip),
-            Widgets::ImageButton({ 83, 92 }, { 24, 24 }, WindowColour::secondary, ImageIds::paintbrush, StringIds::tooltip_paint_landscape_tool),
-            Widgets::ImageButton({ 112, 94 }, { 20, 20 }, WindowColour::primary)
+            Widgets::Wt3Widget(Widx::kToolArea, { 49, 45 }, { 64, 44 }, WindowColour::secondary, Widget::kContentNull, StringIds::tooltip_adjust_land_tool),
+            Widgets::ImageButton(Widx::kDecreaseArea, { 50, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_land_area),
+            Widgets::ImageButton(Widx::kIncreaseArea, { 96, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_land_area),
+            Widgets::ImageButton(Widx::kMountainMode, { 57, 92 }, { 24, 24 }, WindowColour::secondary, ImageIds::construction_slope_up, StringIds::mountainModeTooltip),
+            Widgets::ImageButton(Widx::kPaintMode, { 83, 92 }, { 24, 24 }, WindowColour::secondary, ImageIds::paintbrush, StringIds::tooltip_paint_landscape_tool),
+            Widgets::ImageButton(Widx::kLandMaterial, { 112, 94 }, { 20, 20 }, WindowColour::primary)
 
         );
 
@@ -1335,17 +1364,17 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BC9A7
-        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case widx::land_material:
+                case Widx::kLandMaterial:
                 {
                     showDropdown(&self, widgetIndex);
                     break;
                 }
 
-                case widx::decrease_area:
+                case Widx::kDecreaseArea:
                 {
                     _adjustToolSize--;
                     if (_adjustToolSize < 1)
@@ -1357,7 +1386,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::increase_area:
+                case Widx::kIncreaseArea:
                 {
                     _adjustToolSize++;
                     if (_adjustToolSize > 64)
@@ -1371,23 +1400,23 @@ namespace OpenLoco::Ui::Windows::Terraform
             }
         }
 
-        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case Common::widx::close_button:
+                case Common::Widx::kCloseButton:
                     WindowManager::close(&self);
                     break;
 
-                case Common::widx::tab_adjust_land:
-                case Common::widx::tab_adjust_water:
-                case Common::widx::tab_build_walls:
-                case Common::widx::tab_clear_area:
-                case Common::widx::tab_plant_trees:
+                case Common::Widx::kTabAdjustLand:
+                case Common::Widx::kTabAdjustWater:
+                case Common::Widx::kTabBuildWalls:
+                case Common::Widx::kTabClearArea:
+                case Common::Widx::kTabPlantTrees:
                     Common::switchTab(self, widgetIndex);
                     break;
 
-                case widx::mountain_mode:
+                case Widx::kMountainMode:
                 {
                     isMountainMode = !isMountainMode;
                     isPaintMode = false;
@@ -1396,7 +1425,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::paint_mode:
+                case Widx::kPaintMode:
                 {
                     isMountainMode = false;
                     isPaintMode = !isPaintMode;
@@ -1408,9 +1437,9 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BC9C6
-        static void onDropdown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id, int16_t itemIndex)
+        static void onDropdown(Window& self, [[maybe_unused]] WidgetIndex_t widgetIndex, const WidgetId id, int16_t itemIndex)
         {
-            if (widgetIndex != widx::land_material)
+            if (id != Widx::kLandMaterial)
             {
                 return;
             }
@@ -1904,13 +1933,20 @@ namespace OpenLoco::Ui::Windows::Terraform
             increase_area,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kToolArea{ "tool_area" };
+            constexpr WidgetId kDecreaseArea{ "decrease_area" };
+            constexpr WidgetId kIncreaseArea{ "increase_area" };
+        }
+
         const uint64_t holdableWidgets = (1 << decrease_area) | (1 << increase_area);
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(130, 105, StringIds::title_adjust_water),
-            Widgets::Wt3Widget({ 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_adjust_water_tool),
-            Widgets::ImageButton({ 34 + 16, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_water_area),
-            Widgets::ImageButton({ 80 + 16, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_water_area)
+            Widgets::Wt3Widget(Widx::kToolArea, { 33 + 16, 45 }, { 64, 44 }, WindowColour::secondary, ImageIds::tool_area, StringIds::tooltip_adjust_water_tool),
+            Widgets::ImageButton(Widx::kDecreaseArea, { 34 + 16, 46 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::decrease_tool_area, Colour::white), StringIds::tooltip_decrease_adjust_water_area),
+            Widgets::ImageButton(Widx::kIncreaseArea, { 80 + 16, 72 }, { 16, 16 }, WindowColour::secondary, Gfx::recolour(ImageIds::increase_tool_area, Colour::white), StringIds::tooltip_increase_adjust_water_area)
 
         );
 
@@ -1937,11 +1973,11 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BCD9D
-        static void onMouseDown(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseDown(Window& self, [[maybe_unused]] WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case widx::decrease_area:
+                case Widx::kDecreaseArea:
                 {
                     _adjustToolSize--;
                     if (_adjustToolSize < 1)
@@ -1953,7 +1989,7 @@ namespace OpenLoco::Ui::Windows::Terraform
                     break;
                 }
 
-                case widx::increase_area:
+                case Widx::kIncreaseArea:
                 {
                     _adjustToolSize++;
                     if (_adjustToolSize > 64)
@@ -2253,11 +2289,16 @@ namespace OpenLoco::Ui::Windows::Terraform
             scrollview = 9,
         };
 
+        namespace Widx
+        {
+            constexpr WidgetId kScrollview{ "scrollview" };
+        }
+
         const uint64_t holdableWidgets = 0;
 
         static constexpr auto widgets = makeWidgets(
             Common::makeCommonWidgets(418, 108, StringIds::title_build_walls),
-            Widgets::ScrollView({ 2, 45 }, { 391, 48 }, WindowColour::secondary, Scrollbars::vertical)
+            Widgets::ScrollView(Widx::kScrollview, { 2, 45 }, { 391, kRowHeight }, WindowColour::secondary, Scrollbars::vertical)
 
         );
 
@@ -2375,47 +2416,35 @@ namespace OpenLoco::Ui::Windows::Terraform
                 WindowManager::close(&self);
             }
 
+            bool hasResized = false;
             if (!Input::hasFlag(Input::Flags::rightMousePressed))
             {
                 auto cursor = Input::getMouseLocation();
-                auto xPos = cursor.x;
-                auto yPos = cursor.y;
-                Window* activeWindow = WindowManager::findAt(xPos, yPos);
+                Window* activeWindow = WindowManager::findAt(cursor.x, cursor.y);
                 if (activeWindow == &self)
                 {
-                    xPos -= self.x;
-                    xPos += 26;
-                    yPos -= self.y;
-
-                    if ((yPos < 42) || (xPos <= self.width))
+                    auto xPos = cursor.x - self.x;
+                    auto yPos = cursor.y - self.y;
+                    if ((yPos < 42) || (xPos + 26 <= self.width))
                     {
-                        xPos = cursor.x;
-                        yPos = cursor.y;
-                        WidgetIndex_t activeWidget = self.findWidgetAt(xPos, yPos);
-
+                        auto activeWidget = self.findWidgetAt(cursor.x, cursor.y);
                         if (activeWidget > Common::widx::panel)
                         {
                             self.expandContentCounter += 1;
                             if (self.expandContentCounter >= 8)
                             {
-                                auto y = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 562);
+                                auto newHeight = std::min(self.scrollAreas[0].contentHeight - 1 + 60, 562);
                                 if (Ui::height() < 600)
                                 {
-                                    y = std::min(y, 358);
+                                    newHeight = std::min(newHeight, 358);
                                 }
-                                self.minWidth = kWindowSize.width;
-                                self.minHeight = y;
-                                self.maxWidth = kWindowSize.width;
-                                self.maxHeight = y;
+                                hasResized |= self.setSize({ kWindowSize.width, newHeight });
                             }
                             else
                             {
                                 if (Input::state() != Input::State::scrollLeft)
                                 {
-                                    self.minWidth = kWindowSize.width;
-                                    self.minHeight = kWindowSize.height;
-                                    self.maxWidth = kWindowSize.width;
-                                    self.maxHeight = kWindowSize.height;
+                                    hasResized |= self.setSize(kWindowSize);
                                 }
                             }
                         }
@@ -2426,16 +2455,18 @@ namespace OpenLoco::Ui::Windows::Terraform
                     self.expandContentCounter = 0;
                     if (Input::state() != Input::State::scrollLeft)
                     {
-                        self.minWidth = kWindowSize.width;
-                        self.minHeight = kWindowSize.height;
-                        self.maxWidth = kWindowSize.width;
-                        self.maxHeight = kWindowSize.height;
+                        hasResized |= self.setSize(kWindowSize);
                     }
                 }
             }
             self.frameNo++;
 
             self.callPrepareDraw();
+            if (hasResized)
+            {
+                updateActiveThumb(self);
+            }
+
             WindowManager::invalidateWidget(WindowType::terraform, self.number, self.currentTab + Common::widx::tab_clear_area);
         }
 
@@ -2803,19 +2834,19 @@ namespace OpenLoco::Ui::Windows::Terraform
         }
 
         // 0x004BCD82
-        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, [[maybe_unused]] const WidgetId id)
+        static void onMouseUp(Window& self, WidgetIndex_t widgetIndex, const WidgetId id)
         {
-            switch (widgetIndex)
+            switch (id)
             {
-                case Common::widx::close_button:
+                case Common::Widx::kCloseButton:
                     WindowManager::close(&self);
                     break;
 
-                case Common::widx::tab_adjust_land:
-                case Common::widx::tab_adjust_water:
-                case Common::widx::tab_build_walls:
-                case Common::widx::tab_clear_area:
-                case Common::widx::tab_plant_trees:
+                case Common::Widx::kTabAdjustLand:
+                case Common::Widx::kTabAdjustWater:
+                case Common::Widx::kTabBuildWalls:
+                case Common::Widx::kTabClearArea:
+                case Common::Widx::kTabPlantTrees:
                     Common::switchTab(self, widgetIndex);
                     break;
             }
