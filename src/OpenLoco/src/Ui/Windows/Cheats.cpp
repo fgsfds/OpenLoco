@@ -537,7 +537,7 @@ namespace OpenLoco::Ui::Windows::Cheats
                     args.param1 = enumValue(_targetCompanyId);
 
                     GameCommands::doCommand(args, GameCommands::Flags::apply);
-                    WindowManager::invalidate(WindowType::playerInfoToolbar);
+                    Gfx::invalidateScreen();
                     return;
                 }
 
@@ -991,7 +991,7 @@ namespace OpenLoco::Ui::Windows::Cheats
 
             self.invalidate();
 
-            self.setSize(tabInfo.kWindowSize);
+            self.setSizeFixed(tabInfo.kWindowSize);
             self.callOnResize();
             self.callPrepareDraw();
             self.initScrollWidgets();
