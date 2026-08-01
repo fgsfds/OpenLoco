@@ -279,6 +279,14 @@ namespace OpenLoco::Ui::Windows::ToolbarTop::Editor
         }
     }
 
+    static void onMouseHover(Window& window, WidgetIndex_t widgetIndex, const WidgetId id)
+    {
+        if (Config::get().toolbarAutoMenu)
+        {
+            onMouseDown(window, widgetIndex, id);
+        }
+    }
+
     // 0x0043D5A6
     static void onDropdown(Window& window, WidgetIndex_t widgetIndex, const WidgetId id, int16_t itemIndex)
     {
@@ -319,7 +327,7 @@ namespace OpenLoco::Ui::Windows::ToolbarTop::Editor
         window.widgets[Common::widx::terraform_menu].hidden = !isLandscapeEditor;
         window.widgets[widx::map_generation_menu].hidden = !isLandscapeEditor;
         window.widgets[Common::widx::towns_menu].hidden = !isLandscapeEditor;
-        window.widgets[Common::widx::road_menu].hidden = !(isLandscapeEditor && getGameState().lastRoadOption != 0xFF);
+        window.widgets[Common::widx::road_menu].hidden = !(isLandscapeEditor && getGameState().defaultRoadObjectId != 0xFF);
 
         auto interface = ObjectManager::get<InterfaceSkinObject>();
         if (!Audio::isAudioEnabled())
@@ -347,7 +355,7 @@ namespace OpenLoco::Ui::Windows::ToolbarTop::Editor
 
     static constexpr WindowEventList kEvents = {
         .onResize = Common::onResize,
-        .onMouseHover = onMouseDown,
+        .onMouseHover = onMouseHover,
         .onMouseDown = onMouseDown,
         .onDropdown = onDropdown,
         .onUpdate = Common::onUpdate,
