@@ -1,5 +1,6 @@
 26.07.1+ (???)
 ------------------------------------------------------------------------
+- Feature: [#3872] Added an option to align the top toolbar buttons horizontally centred (off by default).
 - Change: [#3815] The keyboard shortcuts window is now separated into groups, and can now be resized.
 - Change: [#3863] The toolbar buttons can now be set to open on click instead of hover.
 - Fix: [#2082] Scrollbars can be overdrawn when certain windows are resized but their scrollview is not.
@@ -7,6 +8,7 @@
 - Fix: [#3855] UI invalidation issue when using switch company cheat.
 - Fix: [#3858] Save file details can overflow the file browser window at minimum height.
 - Fix: [#3861] The news sound setting is not read properly from the config file.
+- Fix: [#3890] On Linux/POSIX, setting the game path does not work correctly if it contains spaces.
 
 26.07.1 (2026-07-27)
 ------------------------------------------------------------------------
