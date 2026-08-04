@@ -4,10 +4,13 @@
 - Change: [#3815] The keyboard shortcuts window is now separated into groups, and can now be resized.
 - Change: [#3863] The toolbar buttons can now be set to open on click instead of hover.
 - Fix: [#2082] Scrollbars can be overdrawn when certain windows are resized but their scrollview is not.
+- Fix: [#2983] Can no longer scroll to adjust terraform tool size widgets.
 - Fix: [#3676] Fix bug where last land variation sprite went unused (original bug).
 - Fix: [#3855] UI invalidation issue when using switch company cheat.
+- Fix: [#3856] News ticker uses double the line height.
 - Fix: [#3858] Save file details can overflow the file browser window at minimum height.
 - Fix: [#3861] The news sound setting is not read properly from the config file.
+- Fix: [#3888] Bridges can be drawn over tall buildings, industries and stations (original bug).
 - Fix: [#3890] On Linux/POSIX, setting the game path does not work correctly if it contains spaces.
 
 26.07.1 (2026-07-27)
