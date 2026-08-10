@@ -1,13 +1,17 @@
 26.07.1+ (???)
 ------------------------------------------------------------------------
+- Feature: [#139, #3775] Added signal placement and removal at fixed step distance along a track block.
 - Feature: [#3872] Added an option to align the top toolbar buttons horizontally centred (off by default).
 - Change: [#3815] The keyboard shortcuts window is now separated into groups, and can now be resized.
 - Change: [#3863] The toolbar buttons can now be set to open on click instead of hover.
+- Change: [#3903] Updated the macOS app icon to match the new Liquid Glass style.
 - Fix: [#2082] Scrollbars can be overdrawn when certain windows are resized but their scrollview is not.
 - Fix: [#2983] Can no longer scroll to adjust terraform tool size widgets.
 - Fix: [#3534] The minimum landscape height can be set to 0 in the landscape generator, while 1 is expected.
+- Fix: [#3566] The 'Only generate landscape when game starts' option remains in effect when switching to PNG heightmaps.
 - Fix: [#3597] News messages don't update viewport/image position correctly between messages.
 - Fix: [#3676] Fix bug where last land variation sprite went unused (original bug).
+- Fix: [#3795] Window layout changes prevent tutorials from playing correctly.
 - Fix: [#3855] UI invalidation issue when using switch company cheat.
 - Fix: [#3856] News ticker uses double the line height.
 - Fix: [#3858] Save file details can overflow the file browser window at minimum height.
