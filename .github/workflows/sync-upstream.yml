@@ -1,0 +1,56 @@
+name: Rebase fork on upstream
+on:
+  schedule:
+    - cron: "17 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: upstream-master-rebase
+  cancel-in-progress: false
+
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out fork master
+        uses: actions/checkout@v6
+        with:
+          ref: master
+          fetch-depth: 0
+
+      - name: Configure rebase identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Rebase and update fork
+        shell: bash
+        run: |
+          set -euo pipefail
+          git remote add upstream https://github.com/OpenLoco/OpenLoco.git
+          git fetch --no-tags upstream master
+
+          if git merge-base --is-ancestor upstream/master HEAD; then
+            echo "Fork master already includes upstream master."
+            exit 0
+          fi
+
+          if ! git rebase upstream/master; then
+            conflicts="$(git diff --name-only --diff-filter=U || true)"
+            git rebase --abort || true
+            {
+              echo "## Upstream rebase needs manual resolution"
+              echo
+              echo "No changes were pushed. Resolve the conflicts and run this workflow again."
+              if [ -n "$conflicts" ]; then
+                echo
+                printf '%s\n' "$conflicts"
+              fi
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          git push --force-with-lease origin HEAD:master
