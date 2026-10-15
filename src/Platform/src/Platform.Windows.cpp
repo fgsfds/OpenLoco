@@ -169,6 +169,7 @@ namespace OpenLoco::Platform
             "C:/GOG Games/Locomotion",
             "C:/Program Files/Steam/steamapps/common/Locomotion",
             "C:/Program Files (x86)/Steam/steamapps/common/Locomotion",
+            ".",
         };
     }
 
